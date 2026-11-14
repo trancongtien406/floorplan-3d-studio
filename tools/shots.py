@@ -125,7 +125,7 @@ def videos(page, orbit=True):
     # 7. videos: frame-exact walkthrough + 360 orbit
     # full-bleed canvas for video: hide the side panels, ~16:9 frame
     page.set_viewport_size({"width": 1304, "height": 800})
-    page.add_style_tag(content=".app{grid-template-columns:0 1fr 0!important} aside{display:none!important} .stage{padding:0!important} .pane{border-radius:0!important;border:0!important}")
+    page.add_style_tag(content=".app{grid-template-columns:1fr!important} header{grid-column:1!important} aside{display:none!important} .stage{padding:0!important} .pane{border-radius:0!important;border:0!important}")
     st(page, "s.setLayout('3d');", 2000)
     for i, pid in [(1, "twobed"), (2, "townhouse")]:
         load(page, i)
