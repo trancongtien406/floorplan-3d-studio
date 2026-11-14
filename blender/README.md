@@ -98,7 +98,7 @@ Circulation is about 0.9 m around the island, dining table and beds.
 
 Styles differ in design language as well as colour: Modern uses black metal and dark walnut. Scandinavian uses light oak, warm white and linen.
 Japandi is low-profile, with textured taupe plaster and minimal decor. Exposure is matched across the three (mean luminance 153 / 147 / 145).
-Render times (8 vCPU shared, no GPU, 2560x1440): top 2.4 min, dollhouse 2.1, iso 2.2 at 48 spp. Interiors take 8.1-15.3 min at 80 spp.
+Render times (8 vCPU shared, no GPU, 2560x1440): top 2.4 min, dollhouse 2.1, iso 2.2 at 48 spp. Interiors take 8.1-18.1 min at 80 spp.
 
 ## Sample output — round 3 (twobed, Modern apartment, 2560x1440, Cycles CPU + OIDN)
 
