@@ -1,0 +1,56 @@
+{
+  "rooms": {
+    "Bedroom 1": {
+      "net_m2": 14.75,
+      "centreline_m2": 16.0,
+      "net_dims_m": [
+        3.84,
+        3.84
+      ]
+    },
+    "Bath": {
+      "net_m2": 4.59,
+      "centreline_m2": 5.2,
+      "net_dims_m": [
+        1.88,
+        2.44
+      ]
+    },
+    "Bedroom 2": {
+      "net_m2": 14.75,
+      "centreline_m2": 16.0,
+      "net_dims_m": [
+        3.84,
+        3.84
+      ]
+    },
+    "Hall": {
+      "net_m2": 2.52,
+      "centreline_m2": 2.8,
+      "net_dims_m": [
+        1.88,
+        1.34
+      ]
+    },
+    "Living & dining": {
+      "net_m2": 26.5,
+      "centreline_m2": 28.0,
+      "net_dims_m": [
+        6.9,
+        3.84
+      ]
+    },
+    "Kitchen": {
+      "net_m2": 11.14,
+      "centreline_m2": 12.0,
+      "net_dims_m": [
+        2.9,
+        3.84
+      ]
+    }
+  },
+  "net_total_m2": 74.25,
+  "gross_centreline_m2": 80,
+  "gross_external_m2": 83.64,
+  "method": "net = room polygons offset to the inside wall faces (half the wall thickness per walled edge; open-plan edges stay on the line, so living/kitchen and hall/living are split on the open boundary)"
+}

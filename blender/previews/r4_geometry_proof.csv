@@ -1,0 +1,41 @@
+element,id,check,plan,model,deviation_mm,ok
+wall,a0,centre-line a->b,"[0, 0]->[10, 0]","[0.0, 0.0]->[10.0, 0.0]",0.0,True
+wall,a0,thickness mm,200,200.0,0.0,True
+wall,a1,centre-line a->b,"[10, 0]->[10, 8]","[10.0, 0.0]->[10.0, 8.0]",0.0,True
+wall,a1,thickness mm,200,200.0,0.0,True
+wall,a2,centre-line a->b,"[10, 8]->[0, 8]","[10.0, 8.0]->[0.0, 8.0]",0.0,True
+wall,a2,thickness mm,200,200.0,0.0,True
+wall,a3,centre-line a->b,"[0, 8]->[0, 0]","[0.0, 8.0]->[0.0, 0.0]",0.0,True
+wall,a3,thickness mm,200,200.0,0.0,True
+wall,a4,centre-line a->b,"[0, 4]->[4, 4]","[0.0, 4.0]->[4.0, 4.0]",0.0,True
+wall,a4,thickness mm,120,120.0,0.0,True
+wall,a5,centre-line a->b,"[6, 4]->[10, 4]","[6.0, 4.0]->[10.0, 4.0]",0.0,True
+wall,a5,thickness mm,120,120.0,0.0,True
+wall,a6,centre-line a->b,"[4, 0]->[4, 4]","[4.0, 0.0]->[4.0, 4.0]",0.0,True
+wall,a6,thickness mm,120,120.0,0.0,True
+wall,a7,centre-line a->b,"[6, 0]->[6, 4]","[6.0, -0.0]->[6.0, 4.0]",0.0,True
+wall,a7,thickness mm,120,120.0,0.0,True
+wall,a8,centre-line a->b,"[4, 2.6]->[6, 2.6]","[4.0, 2.6]->[6.0, 2.6]",0.0,True
+wall,a8,thickness mm,120,120.0,0.0,True
+door,D1 (b1),centre from wall start m,3.32,3.32,0.0,True
+door,D1 (b1),width m,0.85,0.85,0.0,True
+door,D1 (b1),swings into,Bedroom 1,Bedroom 1,,True
+door,D2 (b2),centre from wall start m,3.32,3.32,0.0,True
+door,D2 (b2),width m,0.85,0.85,0.0,True
+door,D2 (b2),swings into,Bedroom 2,Bedroom 2,,True
+door,D3 (b3),centre from wall start m,1.0,1.0,0.0,True
+door,D3 (b3),width m,0.8,0.8,0.0,True
+door,D3 (b3),swings into,Hall,Hall,,True
+window,W1 (b4),centre from wall start m,2.0,2.0,0.0,True
+window,W1 (b4),width m,1.6,1.6,0.0,True
+window,W2 (b5),centre from wall start m,8.0,8.0,0.0,True
+window,W2 (b5),width m,1.6,1.6,0.0,True
+window,W3 (b6),centre from wall start m,5.0,5.0,0.0,True
+window,W3 (b6),width m,0.6,0.6,0.0,True
+slider,S1 (b7),centre from wall start m,7.5,7.5,0.0,True
+slider,S1 (b7),width m,2.6,2.6,0.0,True
+window,W4 (b8),centre from wall start m,2.96,2.96,0.0,True
+window,W4 (b8),width m,1.2,1.2,0.0,True
+door,D4 (b9),centre from wall start m,5.0,5.0,0.0,True
+door,D4 (b9),width m,0.95,0.95,0.0,True
+door,D4 (b9),swings into,Kitchen,Kitchen,,True
