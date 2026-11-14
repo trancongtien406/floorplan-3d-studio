@@ -132,6 +132,27 @@ for w in PLAN["walls"]:
             o = FL.rb("SillCut", (op["width"] + 0.06, t + 0.04, 0.025), (c, 0, op["sill"] - 0.0125), M.white, bev=0.004)
             place_local(o, a, ang); put(o, "WallsCut")
 
+def union_walls(coll, prefix):
+    """Join the wall boxes and boolean-union them (exact, self-intersection) so corners and T-junctions have no
+    coplanar overlapping faces (those render as black seams in Cycles)."""
+    objs = [o for o in COL[coll].objects if o.name.startswith(prefix) and o.type == "MESH"]
+    if len(objs) < 2: return
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in objs:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = objs[0]
+    bpy.ops.object.join()
+    j = bpy.context.view_layer.objects.active; j.name = f"{prefix}Union"
+    empty = bpy.data.collections.new(f"{prefix}_none")
+    m = j.modifiers.new("Union", "BOOLEAN"); m.operation = "UNION"; m.solver = "EXACT"
+    m.operand_type = "COLLECTION"; m.collection = empty; m.use_self = True
+    bpy.ops.object.modifier_apply(modifier="Union")
+
+for _c in ("Walls", "WallsCut"):
+    for _o in COL[_c].objects: _o.select_set(False)
+union_walls("Walls", "Wall_")
+union_walls("WallsCut", "WallCut_")
+
 # ------------------------------------------------------------------ floors + baseboards
 FLOOR_TEX = {"wood": ("laminate_floor_02", 0.5), "tile": ("marble_01", 0.7), "stone": ("marble_01", 0.4),
              "concrete": ("granite_tile", 0.3), "carpet": (None, 1)}
