@@ -320,6 +320,32 @@ def header(im, text, h=60, top=22, size=28):
     d.text((GW / 2, top + h / 2 + 1), text, font=f, fill=(255, 255, 255), anchor="mm")
 
 
+def soften_globes(im, min_area=4000):
+    """Highlight compression for flat, near-blown opal globes. Finds round warm-white blobs (disk opening
+    splits them from bright walls / sky; only round, filled, square-bbox blobs are kept) and applies a soft
+    spherical falloff (centre ~0.985, rim ~0.87, warm) inside each disk, feathered at the rim."""
+    import numpy as np
+    from scipy import ndimage as ndi
+    a = np.asarray(im.convert("RGB")).astype(np.float32) / 255.0
+    m = (a[..., 0] >= 0.955) & (a[..., 1] >= 0.925) & (a[..., 2] >= 0.885)
+    yy0, xx0 = np.mgrid[-22:23, -22:23]; disk = (yy0 ** 2 + xx0 ** 2) <= 22 ** 2
+    m2 = ndi.binary_opening(m, structure=disk)
+    lab, n = ndi.label(m2); out = a.copy(); found = []
+    for i, sl in enumerate(ndi.find_objects(lab)):
+        mm = lab[sl] == i + 1; A = mm.sum(); h, w = mm.shape
+        if A < min_area or not (0.85 <= h / w <= 1.18) or A / (h * w) < 0.68: continue
+        ys, xs = np.nonzero(lab == i + 1); cy, cx = ys.mean(), xs.mean(); R = np.sqrt(A / np.pi) + 3
+        y0, y1 = int(max(cy - R - 6, 0)), int(min(cy + R + 6, a.shape[0])); x0, x1 = int(max(cx - R - 6, 0)), int(min(cx + R + 6, a.shape[1]))
+        yy, xx = np.mgrid[y0:y1, x0:x1]; r = np.sqrt((yy - cy - 0.18 * R) ** 2 + (xx - cx + 0.15 * R) ** 2) / R
+        v = np.clip(0.985 - 0.11 * r ** 1.6, 0.86, 0.985)
+        tone = np.stack([v, v * 0.975, v * 0.94], axis=2)
+        rr = np.sqrt((yy - cy) ** 2 + (xx - cx) ** 2); wgt = np.clip((R + 1.0 - rr) / 2.5, 0, 1)[..., None]
+        blk = out[y0:y1, x0:x1]; out[y0:y1, x0:x1] = blk * (1 - wgt) + np.minimum(blk, tone) * wgt
+        found.append((int(cx), int(cy), int(R)))
+    print("soften_globes:", found)
+    return Image.fromarray((np.clip(out, 0, 1) * 255 + 0.5).astype(np.uint8))
+
+
 def ev(im, stops):
     from PIL import ImageEnhance
     return ImageEnhance.Brightness(im).enhance(2 ** stops)
@@ -337,7 +363,7 @@ def gallery():
         im.paste(ev(cover(Image.open(arg("--living")), lw, H2, fy=0.35), -0.15), (g, top))
         im.paste(ev(cover(Image.open(arg("--kitchen")), rw, rh), -0.15), (lw + 2 * g, top))
         im.paste(ev(cover(Image.open(arg("--bedroom")), rw, rh), -0.15), (lw + 2 * g, top + rh + g))
-        header(im, "COMPLETE INTERIOR VISUALIZATION")
+        header(im, "INTERIOR VISUALIZATION \u2014 KEY SPACES")
         label(im, g + 14, GH - 52, "Living & dining"); label(im, lw + 2 * g + 14, top + rh - 46, "Kitchen"); label(im, lw + 2 * g + 14, GH - 52, "Bedroom")
         p = os.path.join(OUT, "gallery_2_interiors.jpg"); im.save(p, quality=92); out.append(p)
     if arg("--plan2d") and arg("--top"):
@@ -353,14 +379,19 @@ def gallery():
             im.paste(t, (xb + (cw - t.size[0]) // 2, top + (ch - t.size[1]) // 2))
         title_band(im, "DIMENSION-MATCHED 2D TO 3D RECONSTRUCTION", dark=True)
         label(im, pad + 10, GH - 48, "2D FLOOR PLAN", dark=True); label(im, 2 * pad + w2d + 10, GH - 48, "3D TOP VIEW", dark=True)
+        dn = ImageDraw.Draw(im); fu = F("SemiBold", 17); nt = "ALL DIMENSIONS IN METERS"; tw_ = dn.textlength(nt, font=fu)
+        dn.rounded_rectangle([GW - pad - tw_ - 34, GH - 48, GW - pad - 10, GH - 14], 8, fill=(255, 255, 255), outline=(22, 24, 28), width=2)
+        dn.text((GW - pad - tw_ - 22, GH - 42), nt, font=fu, fill=(22, 24, 28))
         p = os.path.join(OUT, "gallery_3_plan_vs_3d.jpg"); im.save(p, quality=92); out.append(p)
     if arg("--styles"):
         fs = arg("--styles").split(","); names = ["Modern", "Scandinavian", "Japandi"]
         top = 96; g = 8; im = Image.new("RGB", (GW, GH), (18, 19, 22)); cw = (GW - 4 * g) // 3; H2 = GH - top - g
         for i, (f_, n_) in enumerate(zip(fs, names)):
-            im.paste(cover(Image.open(f_), cw, H2, fx=0.36), (g + i * (cw + g), top))
+            src_ = Image.open(f_).convert("RGB")
+            if n_ == "Scandinavian": src_ = soften_globes(src_)
+            im.paste(cover(src_, cw, H2, fx=0.36), (g + i * (cw + g), top))
             label(im, g + i * (cw + g) + 14, GH - 52, n_)
-            s16 = cover(Image.open(f_), 1920, 1080); label(s16, 32, 1080 - 70, f"{n_} · same camera")
+            s16 = cover(src_, 1920, 1080); label(s16, 32, 1080 - 70, f"{n_} · same camera")
             s16.save(os.path.join(OUT, f"style_{n_.lower()}_16x9.jpg"), quality=92)
         header(im, "ONE ROOM, THREE STYLES")
         p = os.path.join(OUT, "gallery_4_styles.jpg"); im.save(p, quality=92); out.append(p)

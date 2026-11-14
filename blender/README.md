@@ -91,6 +91,8 @@ Gallery order: A, C, B, D.
 * **Styles.** They are now clearly distinct. Scandinavian has white walls, light oak, linen upholstery, opal globes and brighter daylight (+0.42 EV).
   Japandi has warm beige plaster, warm oak (`oak_veneer_01`), low wooden-frame furniture and ribbed rice-paper lanterns.
   Both were re-rendered at the same camera (Cycles, 40 spp + OIDN, 1920×1080, about 2.5-3 min each).
+* **Final touches.** B carries an "ALL DIMENSIONS IN METERS" note. C is headed "INTERIOR VISUALIZATION — KEY SPACES". The Scandinavian opal globes
+  get a compositing-only highlight compression (`soften_globes` in `present.py`: round globe blobs only, soft spherical falloff, feathered rim).
 * **Geometry proof.** The swing column reads "from → into". D4 reads "Exterior → Kitchen (rendered closed)". A scope note says the checks cover walls,
   openings and swings, and are a modelling-accuracy check, not a building-code or structural certification (`previews/r5_geometry_proof.jpg` / `.csv`).
 
