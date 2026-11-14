@@ -1,0 +1,421 @@
+{
+  "id": "townhouse",
+  "name": "Townhouse · ground floor",
+  "subtitle": "7 × 12 m · living, kitchen-dining, WC, stairs",
+  "style": "japandi",
+  "walls": [
+    {
+      "id": "t0",
+      "a": [
+        0,
+        0
+      ],
+      "b": [
+        7,
+        0
+      ],
+      "thickness": 0.2,
+      "height": 2.9
+    },
+    {
+      "id": "t1",
+      "a": [
+        7,
+        0
+      ],
+      "b": [
+        7,
+        12
+      ],
+      "thickness": 0.2,
+      "height": 2.9
+    },
+    {
+      "id": "t2",
+      "a": [
+        7,
+        12
+      ],
+      "b": [
+        0,
+        12
+      ],
+      "thickness": 0.2,
+      "height": 2.9
+    },
+    {
+      "id": "t3",
+      "a": [
+        0,
+        12
+      ],
+      "b": [
+        0,
+        0
+      ],
+      "thickness": 0.2,
+      "height": 2.9
+    },
+    {
+      "id": "t4",
+      "a": [
+        5.2,
+        4.5
+      ],
+      "b": [
+        7,
+        4.5
+      ],
+      "thickness": 0.12,
+      "height": 2.9
+    },
+    {
+      "id": "t5",
+      "a": [
+        5.2,
+        4.5
+      ],
+      "b": [
+        5.2,
+        7.5
+      ],
+      "thickness": 0.12,
+      "height": 2.9
+    },
+    {
+      "id": "t6",
+      "a": [
+        5.2,
+        7.5
+      ],
+      "b": [
+        7,
+        7.5
+      ],
+      "thickness": 0.12,
+      "height": 2.9
+    },
+    {
+      "id": "t7",
+      "a": [
+        0,
+        7.5
+      ],
+      "b": [
+        3.4,
+        7.5
+      ],
+      "thickness": 0.12,
+      "height": 2.9
+    },
+    {
+      "id": "t8",
+      "a": [
+        0,
+        4.5
+      ],
+      "b": [
+        3.4,
+        4.5
+      ],
+      "thickness": 0.12,
+      "height": 2.9
+    }
+  ],
+  "openings": [
+    {
+      "id": "u1",
+      "wallId": "t0",
+      "kind": "slider",
+      "t": 0.5,
+      "width": 3,
+      "height": 2.25,
+      "sill": 0
+    },
+    {
+      "id": "u2",
+      "wallId": "t2",
+      "kind": "door",
+      "t": 0.143,
+      "width": 1,
+      "height": 2.1,
+      "sill": 0,
+      "flip": false
+    },
+    {
+      "id": "u3",
+      "wallId": "t2",
+      "kind": "window",
+      "t": 0.443,
+      "width": 2,
+      "height": 1.6,
+      "sill": 0.6
+    },
+    {
+      "id": "u4",
+      "wallId": "t5",
+      "kind": "door",
+      "t": 0.77,
+      "width": 0.8,
+      "height": 2.1,
+      "sill": 0,
+      "flip": false
+    },
+    {
+      "id": "u5",
+      "wallId": "t1",
+      "kind": "window",
+      "t": 0.458,
+      "width": 0.6,
+      "height": 0.6,
+      "sill": 1.5
+    },
+    {
+      "id": "u6",
+      "wallId": "t1",
+      "kind": "window",
+      "t": 0.125,
+      "width": 1.2,
+      "height": 1.1,
+      "sill": 1
+    },
+    {
+      "id": "u7",
+      "wallId": "t3",
+      "kind": "window",
+      "t": 0.183,
+      "width": 1.4,
+      "height": 1.35,
+      "sill": 0.9
+    }
+  ],
+  "rooms": [
+    {
+      "id": "v1",
+      "name": "Kitchen & dining",
+      "floor": "wood",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          7,
+          0
+        ],
+        [
+          7,
+          4.5
+        ],
+        [
+          0,
+          4.5
+        ]
+      ]
+    },
+    {
+      "id": "v2",
+      "name": "Hall & stairs",
+      "floor": "stone",
+      "points": [
+        [
+          0,
+          4.5
+        ],
+        [
+          5.2,
+          4.5
+        ],
+        [
+          5.2,
+          7.5
+        ],
+        [
+          0,
+          7.5
+        ]
+      ]
+    },
+    {
+      "id": "v3",
+      "name": "WC & laundry",
+      "floor": "tile",
+      "points": [
+        [
+          5.2,
+          4.5
+        ],
+        [
+          7,
+          4.5
+        ],
+        [
+          7,
+          7.5
+        ],
+        [
+          5.2,
+          7.5
+        ]
+      ]
+    },
+    {
+      "id": "v4",
+      "name": "Living room",
+      "floor": "wood",
+      "points": [
+        [
+          0,
+          7.5
+        ],
+        [
+          7,
+          7.5
+        ],
+        [
+          7,
+          12
+        ],
+        [
+          0,
+          12
+        ]
+      ]
+    }
+  ],
+  "items": [
+    {
+      "id": "it40",
+      "type": "kitchen",
+      "x": 0.41,
+      "y": 2.4,
+      "rot": -90
+    },
+    {
+      "id": "it41",
+      "type": "fridge",
+      "x": 0.44,
+      "y": 0.48,
+      "rot": -90
+    },
+    {
+      "id": "it42",
+      "type": "island",
+      "x": 2.5,
+      "y": 2.4,
+      "rot": 90
+    },
+    {
+      "id": "it43",
+      "type": "dining6",
+      "x": 5,
+      "y": 2.3,
+      "rot": 0
+    },
+    {
+      "id": "it44",
+      "type": "plant",
+      "x": 6.5,
+      "y": 0.5,
+      "rot": 0
+    },
+    {
+      "id": "it45",
+      "type": "stairs",
+      "x": 0.65,
+      "y": 6,
+      "rot": 0
+    },
+    {
+      "id": "it46",
+      "type": "dresser",
+      "x": 2.4,
+      "y": 4.81,
+      "rot": 0
+    },
+    {
+      "id": "it47",
+      "type": "plant",
+      "x": 4.7,
+      "y": 7.05,
+      "rot": 0
+    },
+    {
+      "id": "it48",
+      "type": "toilet",
+      "x": 6.56,
+      "y": 5.3,
+      "rot": 90
+    },
+    {
+      "id": "it49",
+      "type": "vanity",
+      "x": 6.66,
+      "y": 6.5,
+      "rot": 90
+    },
+    {
+      "id": "it50",
+      "type": "washer",
+      "x": 5.65,
+      "y": 4.9,
+      "rot": 0
+    },
+    {
+      "id": "it51",
+      "type": "sofa3",
+      "x": 1.55,
+      "y": 8.03,
+      "rot": 0
+    },
+    {
+      "id": "it52",
+      "type": "tv",
+      "x": 1.55,
+      "y": 11.69,
+      "rot": 180
+    },
+    {
+      "id": "it53",
+      "type": "rug",
+      "x": 1.7,
+      "y": 9.75,
+      "rot": 0
+    },
+    {
+      "id": "it54",
+      "type": "coffee",
+      "x": 1.55,
+      "y": 9.6,
+      "rot": 0
+    },
+    {
+      "id": "it55",
+      "type": "armchair",
+      "x": 3.35,
+      "y": 9.6,
+      "rot": 90
+    },
+    {
+      "id": "it56",
+      "type": "floorLamp",
+      "x": 0.35,
+      "y": 9,
+      "rot": 0
+    },
+    {
+      "id": "it57",
+      "type": "bookshelf",
+      "x": 6.72,
+      "y": 9.3,
+      "rot": 90
+    },
+    {
+      "id": "it58",
+      "type": "plant",
+      "x": 0.45,
+      "y": 11.5,
+      "rot": 0
+    }
+  ]
+}

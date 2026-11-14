@@ -1,0 +1,298 @@
+{
+  "id": "studio",
+  "name": "Studio apartment",
+  "subtitle": "7.0 × 5.6 m · 1 room + bath",
+  "style": "scandinavian",
+  "walls": [
+    {
+      "id": "s0",
+      "a": [
+        0,
+        0
+      ],
+      "b": [
+        7,
+        0
+      ],
+      "thickness": 0.2,
+      "height": 2.7
+    },
+    {
+      "id": "s1",
+      "a": [
+        7,
+        0
+      ],
+      "b": [
+        7,
+        5.6
+      ],
+      "thickness": 0.2,
+      "height": 2.7
+    },
+    {
+      "id": "s2",
+      "a": [
+        7,
+        5.6
+      ],
+      "b": [
+        0,
+        5.6
+      ],
+      "thickness": 0.2,
+      "height": 2.7
+    },
+    {
+      "id": "s3",
+      "a": [
+        0,
+        5.6
+      ],
+      "b": [
+        0,
+        0
+      ],
+      "thickness": 0.2,
+      "height": 2.7
+    },
+    {
+      "id": "s4",
+      "a": [
+        4.8,
+        0
+      ],
+      "b": [
+        4.8,
+        2.4
+      ],
+      "thickness": 0.12,
+      "height": 2.7
+    },
+    {
+      "id": "s5",
+      "a": [
+        4.8,
+        2.4
+      ],
+      "b": [
+        7,
+        2.4
+      ],
+      "thickness": 0.12,
+      "height": 2.7
+    }
+  ],
+  "openings": [
+    {
+      "id": "o1",
+      "wallId": "s0",
+      "kind": "window",
+      "t": 0.25,
+      "width": 1.6,
+      "height": 1.45,
+      "sill": 0.8
+    },
+    {
+      "id": "o2",
+      "wallId": "s3",
+      "kind": "window",
+      "t": 0.42,
+      "width": 1.4,
+      "height": 1.35,
+      "sill": 0.9
+    },
+    {
+      "id": "o3",
+      "wallId": "s1",
+      "kind": "window",
+      "t": 0.2,
+      "width": 0.6,
+      "height": 0.65,
+      "sill": 1.45
+    },
+    {
+      "id": "o4",
+      "wallId": "s1",
+      "kind": "door",
+      "t": 0.857,
+      "width": 0.95,
+      "height": 2.1,
+      "sill": 0,
+      "flip": false
+    },
+    {
+      "id": "o5",
+      "wallId": "s5",
+      "kind": "door",
+      "t": 0.32,
+      "width": 0.8,
+      "height": 2.1,
+      "sill": 0,
+      "flip": false
+    }
+  ],
+  "rooms": [
+    {
+      "id": "r1",
+      "name": "Living / sleeping",
+      "floor": "wood",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          4.8,
+          0
+        ],
+        [
+          4.8,
+          2.4
+        ],
+        [
+          7,
+          2.4
+        ],
+        [
+          7,
+          5.6
+        ],
+        [
+          0,
+          5.6
+        ]
+      ]
+    },
+    {
+      "id": "r2",
+      "name": "Bath",
+      "floor": "tile",
+      "points": [
+        [
+          4.8,
+          0
+        ],
+        [
+          7,
+          0
+        ],
+        [
+          7,
+          2.4
+        ],
+        [
+          4.8,
+          2.4
+        ]
+      ]
+    }
+  ],
+  "items": [
+    {
+      "id": "it1",
+      "type": "bedDouble",
+      "x": 1.25,
+      "y": 1.17,
+      "rot": 0
+    },
+    {
+      "id": "it2",
+      "type": "nightstand",
+      "x": 2.42,
+      "y": 0.34,
+      "rot": 0
+    },
+    {
+      "id": "it3",
+      "type": "nightstand",
+      "x": 0.34,
+      "y": 2.45,
+      "rot": -90
+    },
+    {
+      "id": "it4",
+      "type": "wardrobe",
+      "x": 0.41,
+      "y": 3.35,
+      "rot": -90
+    },
+    {
+      "id": "it5",
+      "type": "tv",
+      "x": 2.3,
+      "y": 2.95,
+      "rot": 0
+    },
+    {
+      "id": "it6",
+      "type": "rug",
+      "x": 2.4,
+      "y": 4.25,
+      "rot": 0
+    },
+    {
+      "id": "it7",
+      "type": "sofa2",
+      "x": 2.4,
+      "y": 5.04,
+      "rot": 180
+    },
+    {
+      "id": "it8",
+      "type": "coffee",
+      "x": 2.4,
+      "y": 4.05,
+      "rot": 0
+    },
+    {
+      "id": "it9",
+      "type": "floorLamp",
+      "x": 3.6,
+      "y": 5.22,
+      "rot": 0
+    },
+    {
+      "id": "it10",
+      "type": "plant",
+      "x": 0.45,
+      "y": 5.12,
+      "rot": 0
+    },
+    {
+      "id": "it11",
+      "type": "kitchenShort",
+      "x": 5.9,
+      "y": 5.19,
+      "rot": 180
+    },
+    {
+      "id": "it12",
+      "type": "bistro",
+      "x": 5.85,
+      "y": 3.55,
+      "rot": 0
+    },
+    {
+      "id": "it13",
+      "type": "shower",
+      "x": 6.45,
+      "y": 0.55,
+      "rot": 0
+    },
+    {
+      "id": "it14",
+      "type": "toilet",
+      "x": 6.56,
+      "y": 1.75,
+      "rot": 90
+    },
+    {
+      "id": "it15",
+      "type": "vanity",
+      "x": 5.4,
+      "y": 0.34,
+      "rot": 0
+    }
+  ]
+}

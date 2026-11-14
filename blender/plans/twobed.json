@@ -1,0 +1,522 @@
+{
+  "id": "twobed",
+  "name": "2-bedroom apartment",
+  "subtitle": "10 × 8 m · 2 bed · open living",
+  "style": "modern",
+  "walls": [
+    {
+      "id": "a0",
+      "a": [
+        0,
+        0
+      ],
+      "b": [
+        10,
+        0
+      ],
+      "thickness": 0.2,
+      "height": 2.7
+    },
+    {
+      "id": "a1",
+      "a": [
+        10,
+        0
+      ],
+      "b": [
+        10,
+        8
+      ],
+      "thickness": 0.2,
+      "height": 2.7
+    },
+    {
+      "id": "a2",
+      "a": [
+        10,
+        8
+      ],
+      "b": [
+        0,
+        8
+      ],
+      "thickness": 0.2,
+      "height": 2.7
+    },
+    {
+      "id": "a3",
+      "a": [
+        0,
+        8
+      ],
+      "b": [
+        0,
+        0
+      ],
+      "thickness": 0.2,
+      "height": 2.7
+    },
+    {
+      "id": "a4",
+      "a": [
+        0,
+        4
+      ],
+      "b": [
+        4,
+        4
+      ],
+      "thickness": 0.12,
+      "height": 2.7
+    },
+    {
+      "id": "a5",
+      "a": [
+        6,
+        4
+      ],
+      "b": [
+        10,
+        4
+      ],
+      "thickness": 0.12,
+      "height": 2.7
+    },
+    {
+      "id": "a6",
+      "a": [
+        4,
+        0
+      ],
+      "b": [
+        4,
+        4
+      ],
+      "thickness": 0.12,
+      "height": 2.7
+    },
+    {
+      "id": "a7",
+      "a": [
+        6,
+        0
+      ],
+      "b": [
+        6,
+        4
+      ],
+      "thickness": 0.12,
+      "height": 2.7
+    },
+    {
+      "id": "a8",
+      "a": [
+        4,
+        2.6
+      ],
+      "b": [
+        6,
+        2.6
+      ],
+      "thickness": 0.12,
+      "height": 2.7
+    }
+  ],
+  "openings": [
+    {
+      "id": "b1",
+      "wallId": "a6",
+      "kind": "door",
+      "t": 0.83,
+      "width": 0.85,
+      "height": 2.1,
+      "sill": 0,
+      "flip": false
+    },
+    {
+      "id": "b2",
+      "wallId": "a7",
+      "kind": "door",
+      "t": 0.83,
+      "width": 0.85,
+      "height": 2.1,
+      "sill": 0,
+      "flip": true
+    },
+    {
+      "id": "b3",
+      "wallId": "a8",
+      "kind": "door",
+      "t": 0.5,
+      "width": 0.8,
+      "height": 2.1,
+      "sill": 0,
+      "flip": false
+    },
+    {
+      "id": "b4",
+      "wallId": "a0",
+      "kind": "window",
+      "t": 0.2,
+      "width": 1.6,
+      "height": 1.35,
+      "sill": 0.9
+    },
+    {
+      "id": "b5",
+      "wallId": "a0",
+      "kind": "window",
+      "t": 0.8,
+      "width": 1.6,
+      "height": 1.35,
+      "sill": 0.9
+    },
+    {
+      "id": "b6",
+      "wallId": "a0",
+      "kind": "window",
+      "t": 0.5,
+      "width": 0.6,
+      "height": 0.6,
+      "sill": 1.5
+    },
+    {
+      "id": "b7",
+      "wallId": "a2",
+      "kind": "slider",
+      "t": 0.75,
+      "width": 2.6,
+      "height": 2.25,
+      "sill": 0
+    },
+    {
+      "id": "b8",
+      "wallId": "a3",
+      "kind": "window",
+      "t": 0.37,
+      "width": 1.2,
+      "height": 1.35,
+      "sill": 0.9
+    },
+    {
+      "id": "b9",
+      "wallId": "a1",
+      "kind": "door",
+      "t": 0.625,
+      "width": 0.95,
+      "height": 2.1,
+      "sill": 0,
+      "flip": false
+    }
+  ],
+  "rooms": [
+    {
+      "id": "q1",
+      "name": "Bedroom 1",
+      "floor": "wood",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          4,
+          4
+        ],
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "q2",
+      "name": "Bath",
+      "floor": "tile",
+      "points": [
+        [
+          4,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          6,
+          2.6
+        ],
+        [
+          4,
+          2.6
+        ]
+      ]
+    },
+    {
+      "id": "q3",
+      "name": "Bedroom 2",
+      "floor": "carpet",
+      "points": [
+        [
+          6,
+          0
+        ],
+        [
+          10,
+          0
+        ],
+        [
+          10,
+          4
+        ],
+        [
+          6,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "q4",
+      "name": "Hall",
+      "floor": "wood",
+      "points": [
+        [
+          4,
+          2.6
+        ],
+        [
+          6,
+          2.6
+        ],
+        [
+          6,
+          4
+        ],
+        [
+          4,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "q5",
+      "name": "Living & dining",
+      "floor": "wood",
+      "points": [
+        [
+          0,
+          4
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          7,
+          8
+        ],
+        [
+          0,
+          8
+        ]
+      ]
+    },
+    {
+      "id": "q6",
+      "name": "Kitchen",
+      "floor": "tile",
+      "points": [
+        [
+          7,
+          4
+        ],
+        [
+          10,
+          4
+        ],
+        [
+          10,
+          8
+        ],
+        [
+          7,
+          8
+        ]
+      ]
+    }
+  ],
+  "items": [
+    {
+      "id": "it16",
+      "type": "bedDouble",
+      "x": 2,
+      "y": 1.17,
+      "rot": 0
+    },
+    {
+      "id": "it17",
+      "type": "nightstand",
+      "x": 0.86,
+      "y": 0.34,
+      "rot": 0
+    },
+    {
+      "id": "it18",
+      "type": "nightstand",
+      "x": 3.14,
+      "y": 0.34,
+      "rot": 0
+    },
+    {
+      "id": "it19",
+      "type": "wardrobe",
+      "x": 1.3,
+      "y": 3.6,
+      "rot": 180
+    },
+    {
+      "id": "it20",
+      "type": "plant",
+      "x": 3.5,
+      "y": 3.45,
+      "rot": 0
+    },
+    {
+      "id": "it21",
+      "type": "bedSingle",
+      "x": 9.35,
+      "y": 1.14,
+      "rot": 0
+    },
+    {
+      "id": "it22",
+      "type": "desk",
+      "x": 7.3,
+      "y": 0.46,
+      "rot": 0
+    },
+    {
+      "id": "it23",
+      "type": "officeChair",
+      "x": 7.3,
+      "y": 1.1,
+      "rot": 180
+    },
+    {
+      "id": "it24",
+      "type": "wardrobe",
+      "x": 8.5,
+      "y": 3.6,
+      "rot": 180
+    },
+    {
+      "id": "it25",
+      "type": "bookshelf",
+      "x": 6.25,
+      "y": 1.9,
+      "rot": -90
+    },
+    {
+      "id": "it26",
+      "type": "bathtub",
+      "x": 5,
+      "y": 0.48,
+      "rot": 0
+    },
+    {
+      "id": "it27",
+      "type": "toilet",
+      "x": 5.6,
+      "y": 1.85,
+      "rot": 90
+    },
+    {
+      "id": "it28",
+      "type": "vanity",
+      "x": 4.3,
+      "y": 1.75,
+      "rot": -90
+    },
+    {
+      "id": "it29",
+      "type": "tv",
+      "x": 0.32,
+      "y": 6.3,
+      "rot": -90
+    },
+    {
+      "id": "it30",
+      "type": "rug",
+      "x": 1.75,
+      "y": 6.3,
+      "rot": 90
+    },
+    {
+      "id": "it31",
+      "type": "sofa3",
+      "x": 2.85,
+      "y": 6.3,
+      "rot": 90
+    },
+    {
+      "id": "it32",
+      "type": "coffee",
+      "x": 1.65,
+      "y": 6.3,
+      "rot": 90
+    },
+    {
+      "id": "it33",
+      "type": "armchair",
+      "x": 1.6,
+      "y": 4.62,
+      "rot": 0
+    },
+    {
+      "id": "it34",
+      "type": "floorLamp",
+      "x": 2.95,
+      "y": 7.55,
+      "rot": 0
+    },
+    {
+      "id": "it35",
+      "type": "plant",
+      "x": 0.45,
+      "y": 7.55,
+      "rot": 0
+    },
+    {
+      "id": "it36",
+      "type": "dining6",
+      "x": 5,
+      "y": 6.1,
+      "rot": 90
+    },
+    {
+      "id": "it37",
+      "type": "kitchen",
+      "x": 8.4,
+      "y": 7.59,
+      "rot": 180
+    },
+    {
+      "id": "it38",
+      "type": "island",
+      "x": 8.05,
+      "y": 6,
+      "rot": 0
+    },
+    {
+      "id": "it39",
+      "type": "fridge",
+      "x": 9.56,
+      "y": 6,
+      "rot": 90
+    }
+  ]
+}

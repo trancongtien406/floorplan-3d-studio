@@ -1,0 +1,182 @@
+{
+  "sofa3": {
+    "label": "3-seat sofa",
+    "w": 2.2,
+    "d": 0.92,
+    "h": 0.76
+  },
+  "sofa2": {
+    "label": "Loveseat",
+    "w": 1.6,
+    "d": 0.88,
+    "h": 0.76
+  },
+  "armchair": {
+    "label": "Armchair",
+    "w": 0.85,
+    "d": 0.85,
+    "h": 0.76
+  },
+  "coffee": {
+    "label": "Coffee table",
+    "w": 1.1,
+    "d": 0.6,
+    "h": 0.425
+  },
+  "tv": {
+    "label": "TV console",
+    "w": 1.8,
+    "d": 0.42,
+    "h": 1.55
+  },
+  "rug": {
+    "label": "Area rug",
+    "w": 2.4,
+    "d": 1.7,
+    "h": 0.012
+  },
+  "rugRound": {
+    "label": "Round rug",
+    "w": 1.6,
+    "d": 1.6,
+    "h": 0.012
+  },
+  "bookshelf": {
+    "label": "Bookshelf",
+    "w": 1,
+    "d": 0.35,
+    "h": 1.9
+  },
+  "bedDouble": {
+    "label": "Double bed 160",
+    "w": 1.7,
+    "d": 2.1,
+    "h": 1
+  },
+  "bedSingle": {
+    "label": "Single bed 90",
+    "w": 1,
+    "d": 2.05,
+    "h": 1
+  },
+  "nightstand": {
+    "label": "Nightstand",
+    "w": 0.48,
+    "d": 0.4,
+    "h": 0.85
+  },
+  "wardrobe": {
+    "label": "Wardrobe",
+    "w": 1.6,
+    "d": 0.6,
+    "h": 2.2
+  },
+  "dresser": {
+    "label": "Dresser",
+    "w": 1.2,
+    "d": 0.48,
+    "h": 0.88
+  },
+  "dining4": {
+    "label": "Dining set (4)",
+    "w": 1.4,
+    "d": 1.7,
+    "h": 0.91
+  },
+  "dining6": {
+    "label": "Dining set (6)",
+    "w": 1.9,
+    "d": 1.8,
+    "h": 0.91
+  },
+  "bistro": {
+    "label": "Round bistro table",
+    "w": 0.8,
+    "d": 0.8,
+    "h": 0.75
+  },
+  "kitchen": {
+    "label": "Kitchen run 3 m",
+    "w": 3,
+    "d": 0.62,
+    "h": 2.2
+  },
+  "kitchenShort": {
+    "label": "Kitchenette 1.8 m",
+    "w": 1.8,
+    "d": 0.62,
+    "h": 2.2
+  },
+  "island": {
+    "label": "Kitchen island",
+    "w": 1.8,
+    "d": 0.9,
+    "h": 0.9
+  },
+  "fridge": {
+    "label": "Fridge",
+    "w": 0.7,
+    "d": 0.68,
+    "h": 1.9
+  },
+  "bathtub": {
+    "label": "Bathtub",
+    "w": 1.7,
+    "d": 0.75,
+    "h": 0.575
+  },
+  "shower": {
+    "label": "Shower 90",
+    "w": 0.9,
+    "d": 0.9,
+    "h": 2
+  },
+  "toilet": {
+    "label": "Toilet",
+    "w": 0.4,
+    "d": 0.68,
+    "h": 0.8
+  },
+  "vanity": {
+    "label": "Vanity + sink",
+    "w": 0.9,
+    "d": 0.48,
+    "h": 1.85
+  },
+  "desk": {
+    "label": "Desk",
+    "w": 1.4,
+    "d": 0.7,
+    "h": 1.12
+  },
+  "officeChair": {
+    "label": "Office chair",
+    "w": 0.62,
+    "d": 0.62,
+    "h": 1.05
+  },
+  "plant": {
+    "label": "Floor plant",
+    "w": 0.5,
+    "d": 0.5,
+    "h": 1.22
+  },
+  "floorLamp": {
+    "label": "Floor lamp",
+    "w": 0.4,
+    "d": 0.4,
+    "h": 1.69
+  },
+  "stairs": {
+    "label": "Straight stairs",
+    "w": 1,
+    "d": 2.8,
+    "h": 2.663
+  },
+  "washer": {
+    "label": "Washer",
+    "w": 0.6,
+    "d": 0.6,
+    "h": 0.85
+  }
+}
