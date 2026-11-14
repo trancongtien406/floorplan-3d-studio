@@ -86,7 +86,7 @@ def draw_plan(out):
     s = min((W - 900) / pw, (H - 380) / ph); ox = (W - 640 - pw * s) / 2 - minx * s + 60; oy = (H - ph * s) / 2 - miny * s + 30
     T = lambda x, y: (ox + x * s, oy + y * s)
     im = Image.new("RGB", (W, H), (250, 249, 246)); d = ImageDraw.Draw(im)
-    f_room = ImageFont.truetype(FONTB, 30); f_area = ImageFont.truetype(FONT, 24); f_dim = ImageFont.truetype(FONT, 24); f_t = ImageFont.truetype(FONTB, 40)
+    f_room = ImageFont.truetype(FONTB, 30); f_area = ImageFont.truetype(FONT, 24); f_dim = ImageFont.truetype(FONT, 27); f_t = ImageFont.truetype(FONTB, 40)
     # floors
     fill = {"wood": (236, 226, 208), "tile": (226, 230, 232), "carpet": (232, 226, 236), "stone": (228, 228, 224)}
     for r in PLAN["rooms"]:
@@ -135,7 +135,7 @@ def draw_plan(out):
         else:
             x = x0 + off; d.line([(x, y0), (x, y1)], fill=(70, 70, 70), width=2)
             for y in (y0, y1): d.line([(x - 10, y), (x + 10, y)], fill=(70, 70, 70), width=2)
-            tx = Image.new("RGBA", (140, 34), (0, 0, 0, 0)); ImageDraw.Draw(tx).text((70, 17), f"{abs(q[1] - p[1]):.2f}", font=f_dim, fill=(40, 40, 40), anchor="mm")
+            tx = Image.new("RGBA", (150, 38), (0, 0, 0, 0)); ImageDraw.Draw(tx).text((75, 19), f"{abs(q[1] - p[1]):.2f}", font=f_dim, fill=(40, 40, 40), anchor="mm")
             tx = tx.rotate(90, expand=True); im.paste(tx, (int(x - 17 - (18 if off < 0 else -18)), int((y0 + y1) / 2 - 70)), tx)
     # chains: walls that meet each outer edge
     def chain(axis, edge):

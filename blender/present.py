@@ -82,10 +82,12 @@ def proof():
             sgn = -1 if op.get("flip") else 1                     # plan convention (2D plan + web app): leaf to the +normal side when not flipped
             hx = ax + u[0] * (c_plan - op["width"] / 2); hy = ay + u[1] * (c_plan - op["width"] / 2)
             into_plan = room_at(hx + n[0] * sgn * 0.4 + u[0] * 0.3, hy + n[1] * sgn * 0.4 + u[1] * 0.3)
+            from_plan = room_at(hx - n[0] * sgn * 0.4 + u[0] * 0.3, hy - n[1] * sgn * 0.4 + u[1] * 0.3)
+            from_plan = "Exterior" if from_plan == "outside" else from_plan
             ms = b["opens_to_normal_side"]; fx, fy = b["leaf_free_edge"]
             into_model = room_at(hx + n[0] * ms * 0.4 + u[0] * 0.3, hy + n[1] * ms * 0.4 + u[1] * 0.3)
             hinge_plan_end = "a-side jamb"; hinge_model_end = "a-side jamb" if b["hinge_from_a"] < c_plan else "b-side jamb"
-            r.update({"swing_plan": into_plan, "swing_model": into_model, "hinge_plan": hinge_plan_end, "hinge_model": hinge_model_end,
+            r.update({"swing_from": from_plan, "swing_plan": into_plan, "swing_model": into_model, "hinge_plan": hinge_plan_end, "hinge_model": hinge_model_end,
                       "shown_closed": b.get("shown_closed", False)})
             ok = ok and into_plan == into_model and hinge_model_end == hinge_plan_end
         r["ok"] = ok; rows_o.append(r)
@@ -103,19 +105,21 @@ def proof():
             f.write(f"{r['kind']},{r['tag']} ({r['id']}),centre from wall start m,{r['centre_plan_m']},{r['centre_model_m']},{r['centre_dev_mm']},{r['ok']}\n")
             f.write(f"{r['kind']},{r['tag']} ({r['id']}),width m,{r['width_plan_m']},{r['width_model_m']},{r['width_dev_mm']},{r['ok']}\n")
             if r["kind"] == "door":
-                f.write(f"door,{r['tag']} ({r['id']}),swings into,{r['swing_plan']},{r['swing_model']},,{r['ok']}\n")
+                f.write(f"door,{r['tag']} ({r['id']}),swing from -> into{' (rendered closed)' if r.get('shown_closed') else ''},{r['swing_from']} -> {r['swing_plan']},{r['swing_from']} -> {r['swing_model']},,{r['ok']}\n")
+        f.write("scope,,note,walls / openings / swings only,not a building-code or structural certification,,\n")
     # table image
     DJ = "/usr/share/fonts/truetype/dejavu/"
     fb = ImageFont.truetype(DJ + "DejaVuSans.ttf", 21); fs = ImageFont.truetype(DJ + "DejaVuSans-Bold.ttf", 21); fok = ImageFont.truetype(DJ + "DejaVuSans-Bold.ttf", 24)
     cols_w = ["Wall", "Plan centre-line (m)", "Model centre-line (m)", "Endpoint Δ max", "Thickness plan / model", "Height plan / model", ""]
-    cols_o = ["Tag", "Type / wall", "Centre plan / model (m)", "Width plan / model (m)", "Sill–head plan / model (m)", "Swing plan / model", ""]
+    cols_o = ["Tag", "Type / wall", "Centre plan / model (m)", "Width plan / model (m)", "Sill–head plan / model (m)", "Swing (plan = model)", ""]
     rowsW = [[r["wall"], f"{tuple(r['plan_a'])} → {tuple(r['plan_b'])}", f"({abs(r['model_a'][0]) if abs(r['model_a'][0]) < 5e-4 else r['model_a'][0]:.3f}, {abs(r['model_a'][1]) if abs(r['model_a'][1]) < 5e-4 else r['model_a'][1]:.3f}) → ({abs(r['model_b'][0]) if abs(r['model_b'][0]) < 5e-4 else r['model_b'][0]:.3f}, {abs(r['model_b'][1]) if abs(r['model_b'][1]) < 5e-4 else r['model_b'][1]:.3f})",
               f"{r['endpoint_dev_mm']:.1f} mm", f"{r['t_plan_mm']} / {r['t_model_mm']:.0f} mm", f"{r['h_plan_m']:.2f} / {r['h_model_m']:.2f}", "✓" if r["ok"] else "✗"] for r in rows_w]
     rowsO = [[r["tag"], f"{r['kind']} · {r['wall']}", f"{r['centre_plan_m']:.3f} / {r['centre_model_m']:.3f}", f"{r['width_plan_m']:.3f} / {r['width_model_m']:.3f}",
               f"{r['sill_plan_m']:.2f}–{r['head_plan_m']:.2f} / {r['sill_model_m']:.2f}–{r['head_model_m']:.2f}",
-              (f"{r['swing_plan']} / {r['swing_model']}" + (" (closed)" if r.get("shown_closed") else "")) if r["kind"] == "door" else "—", "✓" if r["ok"] else "✗"] for r in rows_o]
+              ((f"{r['swing_from']} → {r['swing_plan']}" if r['swing_plan'] == r['swing_model'] else f"{r['swing_plan']} / {r['swing_model']}")
+               + (" (rendered closed)" if r.get("shown_closed") else "")) if r["kind"] == "door" else "—", "✓" if r["ok"] else "✗"] for r in rows_o]
     X = [60, 200, 620, 1120, 1330, 1690, 2010, 2460]; Xo = [60, 170, 420, 800, 1140, 1560, 2290, 2460]
-    H_ = 200 + 46 * (len(rowsW) + len(rowsO)) + 260
+    H_ = 200 + 46 * (len(rowsW) + len(rowsO)) + 300
     im = Image.new("RGB", (2560, H_), PAPER); d = ImageDraw.Draw(im)
     d.text((60, 40), "Geometry proof — plan data vs Blender model coordinates", font=F("SemiBold", 44), fill=INK)
     d.text((60, 104), f"{PLAN.get('name', PLAN['id'])} · max deviation {res['max_dev_mm']:.2f} mm · "
@@ -134,8 +138,10 @@ def proof():
         return y
     y = table(cols_w, rowsW, X, y) + 30
     y = table(cols_o, rowsO, Xo, y) + 20
-    d.text((60, y), "Swing = room the leaf opens into, from the hinge jamb; plan convention as in the web app and the 2D plan. Doors marked "
-                    "(closed) are rendered shut but their modelled swing is still checked.", font=fb, fill=MUTED)
+    d.text((60, y), "Swing = from-room → room the leaf opens into (hinge jamb as in the 2D plan / web app). Doors marked "
+                    "(rendered closed) are shut in the renders; their modelled swing is still checked.", font=fb, fill=MUTED)
+    d.text((60, y + 40), "Scope: these checks cover walls (centre-lines, thickness, height), openings (position, width, sill/head) and door swings. "
+                         "They are a modelling-accuracy check, not a building-code or structural certification.", font=fs, fill=INK)
     im.save(os.path.join(OUT, "geometry_proof.png")); return res
 
 
@@ -307,40 +313,57 @@ def label(im, x, y, text, dark=True):
     d.text((x + 12, y + 6), text, font=f, fill=(255, 255, 255) if dark else INK)
 
 
+def header(im, text, h=60, top=22, size=28):
+    """Separate header strip above the images (never overlaps pendants / cables)."""
+    d = ImageDraw.Draw(im, "RGBA"); f = F("SemiBold", size); tw = d.textlength(text, font=f); bw = tw + 56
+    x0 = (GW - bw) / 2; d.rounded_rectangle([x0, top, x0 + bw, top + h], 10, fill=(38, 40, 46))
+    d.text((GW / 2, top + h / 2 + 1), text, font=f, fill=(255, 255, 255), anchor="mm")
+
+
+def ev(im, stops):
+    from PIL import ImageEnhance
+    return ImageEnhance.Brightness(im).enhance(2 ** stops)
+
+
 def gallery():
+    """Final gallery order: 1 = dollhouse (A), 2 = interiors (C), 3 = 2D vs 3D (B), 4 = styles (D)."""
     out = []
     if arg("--doll"):
         im = cover(Image.open(arg("--doll")), GW, GH); title_band(im, "2D FLOOR PLAN TO 3D APARTMENT")
-        p = os.path.join(OUT, "gallery_a_dollhouse.jpg"); im.save(p, quality=92); out.append(p)
-    if arg("--plan2d") and arg("--top"):
-        im = Image.new("RGB", (GW, GH), PAPER); pad = 18; cw = (GW - 3 * pad) // 2; ch = GH - 130 - pad
-        a = Image.open(arg("--plan2d")).convert("RGB").crop((60, 30, 1800, 1440)); b = Image.open(arg("--top")).convert("RGB")
-        _, T0, k = top_map(arg("--top")); x0, y0 = T0(minx - 0.6, miny - 0.6); x1, y1 = T0(maxx + 0.6, maxy + 0.6)
-        b = b.crop((int(x0), max(0, int(y0)), int(x1), min(b.size[1], int(y1))))
-        for i, src in enumerate((a, b)):
-            s = min(cw / src.size[0], ch / src.size[1]); t = src.resize((int(src.size[0] * s), int(src.size[1] * s)), Image.LANCZOS)
-            im.paste(t, (pad + i * (cw + pad) + (cw - t.size[0]) // 2, 118 + (ch - t.size[1]) // 2))
-        title_band(im, "ACCURATE FLOORPLAN RECONSTRUCTION", dark=True)
-        label(im, pad + 10, GH - 52, "2D PLAN", dark=True); label(im, pad + cw + pad + 10, GH - 52, "3D MODEL", dark=True)
-        p = os.path.join(OUT, "gallery_b_plan_vs_3d.jpg"); im.save(p, quality=92); out.append(p)
+        p = os.path.join(OUT, "gallery_1_dollhouse.jpg"); im.save(p, quality=92); out.append(p)
     if arg("--living") and arg("--kitchen") and arg("--bedroom"):
-        im = Image.new("RGB", (GW, GH), (18, 19, 22)); g = 8; lw = 820; rw = GW - lw - 3 * g; rh = (GH - 3 * g) // 2
-        im.paste(cover(Image.open(arg("--living")), lw, GH - 2 * g), (g, g))
-        im.paste(cover(Image.open(arg("--kitchen")), rw, rh), (lw + 2 * g, g))
-        im.paste(cover(Image.open(arg("--bedroom")), rw, rh), (lw + 2 * g, rh + 2 * g))
-        title_band(im, "COMPLETE INTERIOR VISUALIZATION")
-        label(im, g + 14, GH - 52, "Living & dining"); label(im, lw + 2 * g + 14, rh - 40, "Kitchen"); label(im, lw + 2 * g + 14, GH - 52, "Bedroom")
-        p = os.path.join(OUT, "gallery_c_interiors.jpg"); im.save(p, quality=92); out.append(p)
+        top = 96; g = 8; im = Image.new("RGB", (GW, GH), (18, 19, 22)); H2 = GH - top - g
+        lw = 820; rw = GW - lw - 3 * g; rh = (H2 - g) // 2
+        im.paste(ev(cover(Image.open(arg("--living")), lw, H2, fy=0.35), -0.15), (g, top))
+        im.paste(ev(cover(Image.open(arg("--kitchen")), rw, rh), -0.15), (lw + 2 * g, top))
+        im.paste(ev(cover(Image.open(arg("--bedroom")), rw, rh), -0.15), (lw + 2 * g, top + rh + g))
+        header(im, "COMPLETE INTERIOR VISUALIZATION")
+        label(im, g + 14, GH - 52, "Living & dining"); label(im, lw + 2 * g + 14, top + rh - 46, "Kitchen"); label(im, lw + 2 * g + 14, GH - 52, "Bedroom")
+        p = os.path.join(OUT, "gallery_2_interiors.jpg"); im.save(p, quality=92); out.append(p)
+    if arg("--plan2d") and arg("--top"):
+        im = Image.new("RGB", (GW, GH), PAPER); pad = 16; top = 108; ch = GH - top - 60
+        w2d, w3d = 560, GW - 3 * pad - 560
+        a = Image.open(arg("--plan2d")).convert("RGB").crop((175, 40, 1790, 1440)); b = Image.open(arg("--top")).convert("RGB")
+        _, T0, k = top_map(arg("--top")); m_ = 0.16      # tight crop: building + 16 cm, no excess grey
+        x0, y0 = T0(minx - m_, miny - m_); x1, y1 = T0(maxx + m_, maxy + m_)
+        b = b.crop((int(x0), max(0, int(y0)), int(x1), min(b.size[1], int(y1))))
+        for i, (src, cw) in enumerate(((a, w2d), (b, w3d))):
+            s_ = min(cw / src.size[0], ch / src.size[1]); t = src.resize((int(src.size[0] * s_), int(src.size[1] * s_)), Image.LANCZOS)
+            xb = pad if i == 0 else 2 * pad + w2d
+            im.paste(t, (xb + (cw - t.size[0]) // 2, top + (ch - t.size[1]) // 2))
+        title_band(im, "DIMENSION-MATCHED 2D TO 3D RECONSTRUCTION", dark=True)
+        label(im, pad + 10, GH - 48, "2D FLOOR PLAN", dark=True); label(im, 2 * pad + w2d + 10, GH - 48, "3D TOP VIEW", dark=True)
+        p = os.path.join(OUT, "gallery_3_plan_vs_3d.jpg"); im.save(p, quality=92); out.append(p)
     if arg("--styles"):
         fs = arg("--styles").split(","); names = ["Modern", "Scandinavian", "Japandi"]
-        im = Image.new("RGB", (GW, GH), (18, 19, 22)); g = 8; cw = (GW - 4 * g) // 3
+        top = 96; g = 8; im = Image.new("RGB", (GW, GH), (18, 19, 22)); cw = (GW - 4 * g) // 3; H2 = GH - top - g
         for i, (f_, n_) in enumerate(zip(fs, names)):
-            im.paste(cover(Image.open(f_), cw, GH - 2 * g, fx=0.36), (g + i * (cw + g), g))
+            im.paste(cover(Image.open(f_), cw, H2, fx=0.36), (g + i * (cw + g), top))
             label(im, g + i * (cw + g) + 14, GH - 52, n_)
-            s16 = cover(Image.open(f_), 1920, 1080); label(s16, 32, 1080 - 70, f"{n_} · same camera, same light")
+            s16 = cover(Image.open(f_), 1920, 1080); label(s16, 32, 1080 - 70, f"{n_} · same camera")
             s16.save(os.path.join(OUT, f"style_{n_.lower()}_16x9.jpg"), quality=92)
-        title_band(im, "ONE ROOM, THREE STYLES")
-        p = os.path.join(OUT, "gallery_d_styles.jpg"); im.save(p, quality=92); out.append(p)
+        header(im, "ONE ROOM, THREE STYLES")
+        p = os.path.join(OUT, "gallery_4_styles.jpg"); im.save(p, quality=92); out.append(p)
     return out
 
 
