@@ -31,7 +31,7 @@ STYLE_PALETTES = {
     "scandinavian": dict(wall="#f5f1ea", wallTop="#3a3f47", fabric="#e2dbcf", fabric2="#c3b9a8", accent="#7f9fb3", duvet="#ffffff",
                          rug="#ece7dd", rug2="#b9b2a5", cabinet="#f1f0ec", counter="#f3f2ee", oak_hsv=(0.5, 0.75, 1.15),
                          floor_hsv=(0.5, 0.7, 1.12), curtain="#f2efe8", lamp="globe"),
-    "japandi": dict(wall="#d8cfc2", wallTop="#3b342d", fabric="#b8aa94", fabric2="#5e5548", accent="#7a6a55", duvet="#e4ddd0",
+    "japandi": dict(wall="#cbc5bb", wallTop="#3b342d", fabric="#b8aa94", fabric2="#5e5548", accent="#7a6a55", duvet="#e4ddd0",
                     rug="#c6b69a", rug2="#8f7a5c", cabinet="#bdb09d", counter="#d9d4ca", oak_hsv=(0.5, 0.7, 1.0),
                     floor_hsv=(0.5, 0.62, 0.92), curtain="#e3d8c6", lamp="paper"),
     "industrial": dict(wall="#d9d4cf", wallTop="#1f2023", fabric="#7b4a2e", fabric2="#2c2d30", accent="#b5543a", duvet="#cfcac4",
@@ -47,7 +47,7 @@ STYLE_SPECS = {
     "scandinavian": dict(floor_wood=("laminate_floor_02", 0.5), wood=("white_oak_veneer", (0.5, 0.75, 1.1)), sofa="round", bed="slat",
                          chair="oak_round", coffee="coffee_table_round_01", armchair="round_boucle", kitchen="white_oak",
                          fabric_n="wool_boucle", rug_n="knitted_fleece", leg="taper", tile=("marble_01", 0.6)),
-    "japandi": dict(floor_wood=("oak_wood_planks", 0.45), wood=("ash_veneer", (0.5, 0.65, 0.95)), sofa="low_frame", bed="platform",
+    "japandi": dict(floor_wood=("oak_wood_planks", 0.45), wood=("ash_veneer", (0.5, 0.6, 0.72)), sofa="low_frame", bed="platform",
                     chair="ash_low", coffee="low_ash", armchair="modern_arm_chair_01", kitchen="ash_slat",
                     fabric_n="rough_linen", rug_n="knitted_fleece", leg="block", tile=("marble_01", 0.6)),
     "industrial": dict(floor_wood=("laminate_floor_02", 0.5), wood=("dark_wood", (0.5, 0.8, 0.7)), sofa="boxy", bed="channel",
@@ -98,7 +98,7 @@ class Mats:
         self.mirror = f("Mirror", color=(0.95, 0.95, 0.95), rough=0.02, metal=1.0)
         self.dark = f("DarkPlastic", color=(0.03, 0.03, 0.035), rough=0.5)
         self.shade = self.emit_mat("LampShade", (0.95, 0.9, 0.8), (1.0, 0.78, 0.5), 3.0)
-        self.paper = self.emit_mat("PaperShade", (0.93, 0.88, 0.78), (1.0, 0.75, 0.45), 6.0)
+        self.paper = self.emit_mat("PaperShade", (0.93, 0.88, 0.78), (1.0, 0.75, 0.45), 3.0)
         self.bulb = self.emit_mat("Bulb", (1, 1, 1), (1.0, 0.82, 0.6), 25.0)
         self.backsplash = f("Backsplash", tex="long_white_tiles", scale=1.0, rough=0.2, coat=0.3, mapping="OBJ")
         self.book_mats = [f(f"Book{i}", color=c, rough=0.6) for i, c in enumerate(

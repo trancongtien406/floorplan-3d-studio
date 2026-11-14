@@ -293,9 +293,12 @@
   ],
   "styles": {
    "modern": {},
-   "scandinavian": {},
+   "scandinavian": {
+    "exposure_offset": 0.3
+   },
    "japandi": {
-    "no_art": true
+    "no_art": true,
+    "exposure_offset": -0.1
    }
   },
   "closed_doors": [
@@ -365,6 +368,18 @@
      2.2,
      140,
      2.0
+    ],
+    [
+     0.9,
+     5.0,
+     55,
+     1.4
+    ],
+    [
+     1.2,
+     3.6,
+     40,
+     1.0
     ]
    ]
   },
