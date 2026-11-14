@@ -22,14 +22,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PLAN = json.load(open(arg("--plan")))
 FOOT = json.load(open(os.path.join(HERE, "plans", "furniture_footprints.json")))
 OUT = arg("--out", os.path.join(HERE, "renders", PLAN["id"])); os.makedirs(OUT, exist_ok=True)
-VIEWS = arg("--views", "top,iso,interior1").split(",")
+VIEWS = [v for v in arg("--views", "top,iso,interior1").split(",") if v]
 SAMPLES = int(arg("--samples", "64")); SAMPLES_INT = int(arg("--samples-interior", "96")); PCT = int(arg("--pct", "100"))
 SHOTS = json.load(open(os.path.join(HERE, "shots.json"))).get(PLAN["id"], {})
+STYLE = arg("--style", PLAN.get("style", "modern"))
+TAG = arg("--tag", "")                      # output name suffix, e.g. "_modern"
+SHOTS.update(SHOTS.get("styles", {}).get(STYLE, {}))
 
 P = lambda x, y, z=0.0: Vector((x, -y, z))   # plan (x, y) metres -> Blender (x, -y)
 
 sc = reset_scene()
-M = FL.Mats(PLAN.get("style", "modern"))
+M = FL.Mats(STYLE)
 COL = {k: bpy.data.collections.new(k) for k in ("Walls", "Openings", "WallsCut", "Floors", "Furniture", "Ceiling", "Env")}
 CUT = float(arg("--cut", "1.2"))  # wall height for the dollhouse cutaway view
 for c in COL.values(): sc.collection.children.link(c)
@@ -163,7 +166,8 @@ def floor_mat(kind):
     if kind == "carpet":
         m = M.rug_mat("Carpet", (0.78, 0.74, 0.68), (0.78, 0.74, 0.68))
     elif kind == "wood":
-        m = pbr_material("Floor_wood", tex=tex, scale=sc_, hsv=M.S["floor_hsv"], rough=0.5, coat=0.15)
+        tex, sc_ = M.X["floor_wood"]
+        m = pbr_material("Floor_wood", tex=tex, scale=sc_, hsv=M.S["floor_hsv"], rough=0.6, coat=0.04, rough_mul=1.35)
     else:
         m = pbr_material(f"Floor_{kind}", tex=tex, scale=sc_, rough=0.35, coat=0.1 if kind == "tile" else 0)
     fmats[kind] = m; return m
@@ -234,7 +238,55 @@ for it in PLAN["items"]:
     for o in objs:
         put(o, "Furniture")
         if o.parent is None: o.parent = root
-    root.location = P(it["x"], it["y"], 0.012); root.rotation_euler = (0, 0, -math.radians(it["rot"]))
+    nd = SHOTS.get("nudge", {}).get(it["id"], (0, 0))   # small layout fixes for footprints that overlap in the source plan
+    root.location = P(it["x"] + nd[0], it["y"] + nd[1], 0.012); root.rotation_euler = (0, 0, -math.radians(it["rot"]))
+
+# round-3 decor/fill items from shots.json (plan coords, own footprints), optionally per style
+for k, it in enumerate(SHOTS.get("extra_items", [])):
+    if it.get("styles") and STYLE not in it["styles"]: continue
+    bld = FL.BUILDERS.get(it["type"])
+    if not bld: print("skip extra", it["type"]); continue
+    objs = bld(M, {"w": it["w"], "d": it["d"]}, {"id": f"x{k}"})
+    root = bpy.data.objects.new(f"Extra_{it['type']}_{k}", None); put(root, "Furniture")
+    for o in objs:
+        put(o, "Furniture")
+        if o.parent is None: o.parent = root
+    root.location = P(it["x"], it["y"], 0.012 + it.get("z", 0)); root.rotation_euler = (0, 0, -math.radians(it.get("rot", 0)))
+
+for k, a_ in enumerate(SHOTS.get("art", [])):
+    root = bpy.data.objects.new(f"ArtX_{k}", None); put(root, "Furniture")
+    for o in FL.wall_art(M, w=a_["w"], h=a_["h"], z=a_["z"], y=0.0, seed=k + 3):
+        put(o, "Furniture"); o.parent = root
+    root.location = P(a_["x"], a_["y"], 0); root.rotation_euler = (0, 0, -math.radians(a_.get("rot", 0)))
+
+# curtains on the room side of every window / slider: two gathered panels + rod
+H_ = max(w["height"] for w in PLAN["walls"])
+xs0 = [p[0] for w in PLAN["walls"] for p in (w["a"], w["b"])]; ys0 = [p[1] for w in PLAN["walls"] for p in (w["a"], w["b"])]
+def inside(x, y): return min(xs0) < x < max(xs0) and min(ys0) < y < max(ys0)
+for op in PLAN["openings"]:
+    if op["kind"] not in ("window", "slider") or op["width"] < 1.0: continue
+    w = walls[op["wallId"]]; A, B = Vector(w["a"]), Vector(w["b"]); d = B - A; L = d.length; u = d / L
+    nrm = Vector((-u.y, u.x)); c = A + u * op["t"] * L
+    if not inside(*(c + nrm * 0.5)): nrm = -nrm
+    off = w["thickness"] / 2 + 0.07
+    pw_ = 0.42 if op["kind"] == "window" else 0.5; hc = H_ - 0.08
+    for side in (-1, 1):
+        x0 = op["width"] / 2 - 0.12 if side > 0 else -op["width"] / 2 - pw_ + 0.12
+        cp = FL.curtain_panel(M, pw_, hc - 0.02, seed=side + 2)
+        base = c + u * x0 + nrm * off
+        cp.location = P(base.x, base.y, 0.02); cp.rotation_euler = (0, 0, math.atan2(-u.y, u.x)); put(cp, "Furniture")
+    mid = c + nrm * off
+    rod = FL.cyl("CurtainRod", 0.012, op["width"] + 1.0, (0, 0, 0), M.metal_black if STYLE != "scandinavian" else M.wood, segs=12, axis="X")
+    rod.location = P(mid.x, mid.y, hc); rod.rotation_euler = (0, 0, math.atan2(-u.y, u.x)); rod["upper"] = True; put(rod, "Furniture")
+
+# ceiling lights (pendants / downlights), visible + lit only in interior shots
+for k, l_ in enumerate(SHOTS.get("lights", [])):
+    kind = l_.get("kind", "pendant")
+    objs = FL.pendant(M, drop=l_.get("drop", 0.7), ceiling=H_, size=l_.get("size", 1.0)) if kind == "pendant" else FL.downlight(M, H_, l_.get("power", 18))
+    root = bpy.data.objects.new(f"Light_{k}", None); put(root, "Ceiling")
+    for o in objs:
+        put(o, "Ceiling"); o.parent = root
+    root.location = P(l_["x"], l_["y"], 0)
 
 # wall art above sofas that stand against a wall (decor, interior shots)
 def wall_behind(px, py, tol=0.12):
@@ -267,6 +319,64 @@ for it in PLAN["items"]:
         put(o, "Furniture"); o.parent = root
     root.location = P(it["x"], it["y"], 0.012); root.rotation_euler = (0, 0, -math.radians(it["rot"]))
 
+# ------------------------------------------------------------------ automated clash check (furniture vs furniture / walls)
+def clash_check():
+    bpy.context.view_layer.update()
+    def top(o):
+        while o.parent is not None and o.parent.name.split(".")[0] not in ("Chair",) and o.parent.parent is not None: o = o.parent
+        return o
+    def item_of(o):
+        while o.parent is not None: o = o.parent
+        return o
+    def sub_of(o):   # chair root inside a dining set, else None
+        while o.parent is not None:
+            if o.parent.name.startswith("Chair"): return o.parent.name
+            o = o.parent
+        return None
+    boxes = []
+    for o in COL["Furniture"].objects:
+        if o.type != "MESH" or o.get("upper") or o.name.startswith(("Rug", "Runner", "Curtain", "Throw")): continue
+        it = item_of(o).name
+        if it.startswith(("Item_rug", "Extra_rug", "Art")): continue
+        ps = [o.matrix_world @ Vector(c) for c in o.bound_box]
+        mn = Vector((min(p.x for p in ps), min(p.y for p in ps), min(p.z for p in ps))); mx = Vector((max(p.x for p in ps), max(p.y for p in ps), max(p.z for p in ps)))
+        boxes.append((it, sub_of(o), o.name, mn, mx))
+    objs = {o.name: o for o in COL["Furniture"].objects}
+    def verts_in(o, bx, eps=0.002):
+        """refine an AABB hit: does any real vertex of o lie inside the other part's box?"""
+        mw = o.matrix_world; mn, mx = bx[3], bx[4]
+        for v in o.data.vertices:
+            p = mw @ v.co
+            if all(mn[i] + eps < p[i] < mx[i] - eps for i in range(3)): return True
+        return False
+    def ov(a, b): return [min(a[4][i], b[4][i]) - max(a[3][i], b[3][i]) for i in range(3)]
+    issues = []
+    for i in range(len(boxes)):
+        for j in range(i + 1, len(boxes)):
+            a, b = boxes[i], boxes[j]
+            same = a[0] == b[0]
+            if same and not ((a[1] is None) != (b[1] is None) or (a[1] and b[1] and a[1] != b[1])): continue   # parts of one piece
+            if same and "dining" not in a[0] and "bistro" not in a[0]: continue
+            o3 = ov(a, b)
+            if min(o3) > 0.01 and (verts_in(objs[a[2]], b) or verts_in(objs[b[2]], a)):
+                # chairs tucked under a table top are fine: only flag real volume overlap below the top
+                issues.append({"a": f"{a[0]}/{a[2]}", "b": f"{b[0]}/{b[2]}", "overlap_m": [round(v, 3) for v in o3]})
+    # furniture footprint vs wall solids (2D, plan walls as rectangles)
+    for it in PLAN["items"]:
+        f = FOOT.get(it["type"])
+        if not f or it["type"] in ("rug", "rugRound"): continue
+        r = math.radians(it["rot"]); hw, hd = f["w"] / 2 - 0.01, f["d"] / 2 - 0.01
+        cs = [(it["x"] + dx * math.cos(r) - dy * math.sin(r), it["y"] + dx * math.sin(r) + dy * math.cos(r)) for dx in (-hw, hw) for dy in (-hd, hd)]
+        for w in PLAN["walls"]:
+            A, B = Vector(w["a"]), Vector(w["b"]); d = B - A; L = d.length; u = d / L; n = Vector((-u.y, u.x))
+            ts = [(Vector(c) - A).dot(u) for c in cs]; ns_ = [(Vector(c) - A).dot(n) for c in cs]
+            if max(ts) > 0.02 and min(ts) < L - 0.02 and min(ns_) < w["thickness"] / 2 - 0.005 and max(ns_) > -w["thickness"] / 2 + 0.005:
+                issues.append({"a": f"item {it['id']} {it['type']}", "b": f"wall {w['id']}", "overlap_m": None})
+    return issues
+
+CLASH = clash_check()
+print("CLASH", len(CLASH), json.dumps(CLASH[:40]))
+
 # ------------------------------------------------------------------ ceiling (interior shots only)
 xs = [p[0] for w in PLAN["walls"] for p in (w["a"], w["b"])]; ys = [p[1] for w in PLAN["walls"] for p in (w["a"], w["b"])]
 minx, maxx, miny, maxy = min(xs), max(xs), min(ys), max(ys)
@@ -277,8 +387,27 @@ set_mat(ceil, pbr_material("CeilingPaint", color=(0.85, 0.85, 0.84), rough=0.9))
 # ------------------------------------------------------------------ environment
 ground = box("Ground", (80, 80, 0.02), (0, 0, -0.011))
 set_mat(ground, pbr_material("Ground", color=(0.78, 0.78, 0.76), rough=0.95)); put(ground, "Env")
-world_hdri(os.path.join(ASSETS, "hdris/kloofendal_48d_partly_cloudy_puresky/kloofendal_48d_partly_cloudy_puresky_2k.hdr"),
-           strength=1.0, rot_z=math.radians(float(SHOTS.get("hdri_rot", 120))))
+W_SKY = world_hdri(os.path.join(ASSETS, "hdris/kloofendal_48d_partly_cloudy_puresky/kloofendal_48d_partly_cloudy_puresky_2k.hdr"),
+                   strength=1.0, rot_z=math.radians(float(SHOTS.get("hdri_rot", 120))))
+
+def interior_world(name, strength, view_strength, rot):
+    """Garden HDRI seen through the windows: full strength for lighting, dimmed for camera/transmission rays so the
+    view outside is not blown out."""
+    w = bpy.data.worlds.new("WorldInterior"); w.use_nodes = True
+    nt = w.node_tree; N = nt.nodes; L = nt.links; N.clear()
+    out = N.new("ShaderNodeOutputWorld"); tc = N.new("ShaderNodeTexCoord"); mp = N.new("ShaderNodeMapping")
+    mp.inputs["Rotation"].default_value[2] = rot
+    env = N.new("ShaderNodeTexEnvironment"); env.image = bpy.data.images.load(os.path.join(ASSETS, f"hdris/{name}/{name}_2k.hdr"))
+    L.new(tc.outputs["Generated"], mp.inputs["Vector"]); L.new(mp.outputs["Vector"], env.inputs["Vector"])
+    lp = N.new("ShaderNodeLightPath"); mx = N.new("ShaderNodeMath"); mx.operation = "MAXIMUM"
+    L.new(lp.outputs["Is Camera Ray"], mx.inputs[0]); L.new(lp.outputs["Is Transmission Ray"], mx.inputs[1])
+    mr = N.new("ShaderNodeMapRange"); mr.inputs["To Min"].default_value = strength; mr.inputs["To Max"].default_value = view_strength
+    L.new(mx.outputs[0], mr.inputs["Value"])
+    bg = N.new("ShaderNodeBackground"); L.new(env.outputs["Color"], bg.inputs["Color"]); L.new(mr.outputs["Result"], bg.inputs["Strength"])
+    L.new(bg.outputs["Background"], out.inputs["Surface"])
+    return w
+W_INT = interior_world(SHOTS.get("int_hdri", "greenwich_park_02"), float(SHOTS.get("int_hdri_strength", 1.2)),
+                       float(SHOTS.get("int_view_strength", 0.45)), math.radians(float(SHOTS.get("int_hdri_rot", 0))))
 sun_d = bpy.data.lights.new("Sun", "SUN"); sun_d.energy = float(SHOTS.get("sun", 3.2)); sun_d.angle = math.radians(3)
 sun_d.color = (1.0, 0.95, 0.88)
 sun = link(bpy.data.objects.new("Sun", sun_d)); put(sun, "Env")
@@ -292,6 +421,9 @@ times = {}
 
 def vis(ceiling=False, uppers=True, cut=False):
     for o in COL["Ceiling"].objects: o.hide_render = not ceiling
+    for o in COL["Env"].objects:
+        if o.name.startswith("Ground"): o.hide_render = ceiling
+    sc.world = W_INT if ceiling else W_SKY
     for k in ("Walls", "Openings"):
         for o in COL[k].objects: o.hide_render = cut
     for o in COL["WallsCut"].objects: o.hide_render = not cut
@@ -341,17 +473,34 @@ for v in VIEWS:
             ld = bpy.data.lights.new(f"Fill{i}", "AREA"); ld.energy = pw_; ld.size = sz; ld.color = (1.0, 0.92, 0.82)
             lo = link(bpy.data.objects.new(f"Fill{i}", ld)); lo.location = P(lx, ly, H - 0.05)
             lo.visible_camera = False; put(lo, "Env")
-    times[v] = render_to(sc, cam, os.path.join(OUT, f"{PLAN['id']}_{v}.png"))
+    times[v] = render_to(sc, cam, os.path.join(OUT, f"{PLAN['id']}{TAG}_{v}.png"))
     for o in list(COL["Env"].objects):
         if o.name.startswith("Fill"): bpy.data.objects.remove(o)
 
 if "--save-blend" in argv:
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, f"{PLAN['id']}.blend"), compress=True)
+    # deliverable layout: Architecture / Furniture / Lighting / Cameras / Environment, textures packed
+    top = {k: bpy.data.collections.new(k) for k in ("Architecture", "Lighting", "Cameras", "Environment")}
+    for k in top.values(): sc.collection.children.link(k)
+    for k in ("Walls", "Openings", "WallsCut", "Floors", "Ceiling"):
+        sc.collection.children.unlink(COL[k]); top["Architecture"].children.link(COL[k])
+    sc.collection.children.unlink(COL["Env"]); top["Environment"].children.link(COL["Env"])
+    for o in list(bpy.data.objects):
+        if o.type == "LIGHT":
+            for c in list(o.users_collection): c.objects.unlink(o)
+            top["Lighting"].objects.link(o)
+        elif o.type == "CAMERA":
+            for c in list(o.users_collection): c.objects.unlink(o)
+            top["Cameras"].objects.link(o)
+    try:
+        bpy.ops.file.pack_all()
+    except Exception as e:
+        print("pack failed", e)
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, f"{PLAN['id']}{TAG}.blend"), compress=True)
 
 # ------------------------------------------------------------------ dimension check vs plan labels
 report = {"plan": PLAN["id"], "subtitle": PLAN.get("subtitle"), "outer_centreline_m": [round(pw, 3), round(ph_, 3)],
           "walls": {w["id"]: round((Vector(w["b"]) - Vector(w["a"])).length, 3) for w in PLAN["walls"]},
-          "rooms": {}, "render_seconds": times, "assets": sorted(FL.USED_ASSETS)}
+          "rooms": {}, "render_seconds": times, "style": STYLE, "clash_check": CLASH, "assets": sorted(FL.USED_ASSETS)}
 for r in PLAN["rooms"]:
     xs_ = [p[0] for p in r["points"]]; ys_ = [p[1] for p in r["points"]]
     report["rooms"][r["name"]] = {"bbox_m": [round(max(xs_) - min(xs_), 3), round(max(ys_) - min(ys_), 3)]}
@@ -359,5 +508,5 @@ bpy.context.view_layer.update()
 built = [o for o in COL["Walls"].objects if o.name.startswith("Wall_")]
 bpts = [o.matrix_world @ Vector(c) for o in built for c in o.bound_box]
 report["built_outer_m"] = [round(max(p.x for p in bpts) - min(p.x for p in bpts), 3), round(max(p.y for p in bpts) - min(p.y for p in bpts), 3)]
-json.dump(report, open(os.path.join(OUT, f"{PLAN['id']}_report.json"), "w"), indent=2)
+json.dump(report, open(os.path.join(OUT, f"{PLAN['id']}{TAG}_report.json"), "w"), indent=2)
 print("DONE", json.dumps(times))
