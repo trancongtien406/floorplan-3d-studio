@@ -4,7 +4,7 @@
   "sun_tilt": 40,
   "hdri_rot": 120,
   "iso_az": -28,
-  "iso_el": 48,
+  "iso_el": 44,
   "interior1": {
    "pos": [
     6.7,
@@ -57,16 +57,18 @@
   },
   "living": {
    "pos": [
-    7.2,
-    4.75,
-    1.5
+    7.0,
+    4.4,
+    1.38
    ],
    "look": [
     1.0,
-    6.4,
-    0.95
+    7.2,
+    1.38
    ],
-   "lens": 18,
+   "level": true,
+   "lens": 16,
+   "shift_y": 0.04,
    "exposure": 0.25,
    "fills": [
     [
@@ -79,16 +81,18 @@
   },
   "kitchen": {
    "pos": [
-    6.55,
-    4.45,
-    1.55
+    8.95,
+    4.4,
+    1.45
    ],
    "look": [
-    9.2,
+    6.2,
     7.3,
-    1.0
+    1.45
    ],
-   "lens": 19,
+   "level": true,
+   "lens": 16,
+   "shift_y": 0.04,
    "exposure": 0.25,
    "fills": [
     [
@@ -101,17 +105,22 @@
   },
   "bedroom": {
    "pos": [
-    3.05,
-    3.75,
-    1.5
+    3.72,
+    3.62,
+    1.35
    ],
    "look": [
-    1.4,
-    0.5,
-    0.85
+    2.0,
+    0.2,
+    1.35
    ],
-   "lens": 18,
+   "level": true,
+   "lens": 16,
+   "shift_y": 0.02,
    "exposure": 0.3,
+   "close": [
+    "b1"
+   ],
    "fills": [
     [
      2.0,
@@ -139,15 +148,15 @@
     "drop": 0.85
    },
    {
-    "x": 7.65,
-    "y": 6.0,
+    "x": 7.45,
+    "y": 5.85,
     "kind": "pendant",
     "drop": 0.95,
     "size": 0.8
    },
    {
-    "x": 8.45,
-    "y": 6.0,
+    "x": 8.05,
+    "y": 5.85,
     "kind": "pendant",
     "drop": 0.95,
     "size": 0.8
@@ -186,15 +195,15 @@
     "x": 2.0,
     "y": 1.9,
     "kind": "pendant",
-    "drop": 0.5,
-    "size": 1.0
+    "drop": 0.42,
+    "size": 0.7
    },
    {
     "x": 8.0,
     "y": 2.0,
     "kind": "pendant",
-    "drop": 0.5,
-    "size": 1.2
+    "drop": 0.45,
+    "size": 0.9
    },
    {
     "x": 5.0,
@@ -233,7 +242,8 @@
     "styles": [
      "modern",
      "japandi"
-    ]
+    ],
+    "off": true
    },
    {
     "type": "ottoman",
@@ -244,7 +254,8 @@
     "d": 0.5,
     "styles": [
      "scandinavian"
-    ]
+    ],
+    "off": true
    },
    {
     "type": "rug",
@@ -283,11 +294,29 @@
   "styles": {
    "modern": {},
    "scandinavian": {},
-   "japandi": {}
+   "japandi": {
+    "no_art": true
+   }
   },
   "closed_doors": [
    "b9"
-  ]
+  ],
+  "doll_az": -28,
+  "doll_el": 42,
+  "iso_zoom": 1.02,
+  "doll_zoom": 1.02,
+  "frame_margin": 0.1,
+  "nudge": {
+   "it38": [
+    -0.3,
+    -0.15,
+    180
+   ],
+   "it39": [
+    0,
+    0.55
+   ]
+  }
  },
  "townhouse": {
   "sun_az": 30,

@@ -66,17 +66,39 @@ def place_local(o, a, ang):
     # NB: use matrix_basis (matrix_world is stale until the depsgraph updates)
     o.matrix_basis = Matrix.Translation(a) @ Matrix.Rotation(ang, 4, "Z") @ o.matrix_basis
 
+BUILT = {"walls": {}, "openings": {}}
+DOORPIV = {}   # op id -> (pivot, open matrix, closed matrix): shots can close a door that would block the camera   # model-space measurements (plan coords, metres) for the geometry proof
+def to_plan(v): return (v.x, -v.y, v.z)
+def world_pts(objs):
+    out = []
+    for o in objs:
+        mw = o.matrix_basis
+        if o.parent is not None: mw = o.parent.matrix_basis @ mw
+        out += [to_plan(mw @ Vector(c)) for c in o.bound_box]
+    return out
+
 for w in PLAN["walls"]:
     ops = [o for o in PLAN["openings"] if o["wallId"] == w["id"]]
     spans, L = wall_spans(w, ops)
     a, ang, _ = wall_frame(w); t = w["thickness"]
+    spans_objs = []
     for (s, e, z0, z1) in spans:
         ext0 = t / 2 if s <= 1e-4 else 0; ext1 = t / 2 if e >= L - 1e-4 else 0
         x0, x1 = s - ext0, e + ext1
         o = box(f"Wall_{w['id']}", (x1 - x0, t, z1 - z0), ((x0 + x1) / 2, 0, (z0 + z1) / 2))
         o.data.materials.append(M.wall); o.data.materials.append(M.wall_cut)
         if abs(z1 - w["height"]) < 1e-6: o.data.polygons[1].material_index = 1
-        place_local(o, a, ang); put(o, "Walls")
+        place_local(o, a, ang); put(o, "Walls"); spans_objs.append(o)
+    pts = world_pts(spans_objs)
+    xs_, ys_, zs_ = [q[0] for q in pts], [q[1] for q in pts], [q[2] for q in pts]
+    horiz = (max(xs_) - min(xs_)) >= (max(ys_) - min(ys_))
+    th = (max(ys_) - min(ys_)) if horiz else (max(xs_) - min(xs_))
+    if horiz:
+        cl = (max(ys_) + min(ys_)) / 2; ends = (min(xs_) + th / 2, max(xs_) - th / 2); A_, B_ = (ends[0], cl), (ends[1], cl)
+    else:
+        cl = (max(xs_) + min(xs_)) / 2; ends = (min(ys_) + th / 2, max(ys_) - th / 2); A_, B_ = (cl, ends[0]), (cl, ends[1])
+    BUILT["walls"][w["id"]] = {"a": [round(v, 4) for v in A_], "b": [round(v, 4) for v in B_], "thickness": round(th, 4),
+                               "height": round(max(zs_) - min(zs_), 4)}
     # openings
     for op in ops:
         c = op["t"] * L; wd = op["width"]; sill = op["sill"]; hh = op["height"]
@@ -112,9 +134,26 @@ for w in PLAN["walls"]:
             parts += [leaf, knob]
             put(leaf, "Openings"); put(knob, "Openings")
             place_local(piv, a, ang)
+            m_closed = Matrix.Translation(a) @ Matrix.Rotation(ang, 4, "Z") @ Matrix.Translation((hinge_x, 0, 0))
+            DOORPIV[op["id"]] = (piv, piv.matrix_basis.copy(), m_closed)
             parts = [p for p in parts if p not in (leaf, knob)]
         for p in parts:
             place_local(p, a, ang); put(p, "Openings")
+        # model-space measurement of the built opening: jamb pieces (window frame / door casing) only
+        jambs = [p for p in parts if p.name.split(".")[0] in ("FrameL", "FrameR", "FrameT", "FrameB", "CasingL", "CasingR", "CasingT")]
+        pts = world_pts(jambs); A0 = Vector(w["a"]); U = (Vector(w["b"]) - A0).normalized()
+        along = [(Vector(q[:2]) - A0).dot(U) for q in pts]; zz = [q[2] for q in pts]
+        rec = {"centre_from_a": round((min(along) + max(along)) / 2, 4), "width": round(max(along) - min(along), 4),
+               "sill": round(min(zz), 4), "head": round(max(zz), 4), "kind": op["kind"]}
+        if op["kind"] == "door":
+            # swing: evaluate the leaf's free edge with the leaf at its modelled open angle (also for doors shown closed)
+            m_open = Matrix.Translation(piv.location) @ Matrix.Rotation(-s * math.radians(80), 4, "Z")
+            m_open = Matrix.Translation(a) @ Matrix.Rotation(ang, 4, "Z") @ Matrix.Translation((hinge_x, 0, 0)) @ Matrix.Rotation(-s * math.radians(80), 4, "Z")
+            free = to_plan(m_open @ Vector((leafW, 0, 0))); hinge = to_plan(m_open @ Vector((0, 0, 0)))
+            N_ = Vector((-U.y, U.x)); side = (Vector(free[:2]) - Vector(hinge[:2])).dot(N_)
+            rec.update({"hinge_from_a": round((Vector(hinge[:2]) - A0).dot(U), 4), "opens_to_normal_side": 1 if side > 0 else -1,
+                        "leaf_free_edge": [round(free[0], 3), round(free[1], 3)], "shown_closed": op["id"] in SHOTS.get("closed_doors", [])})
+        BUILT["openings"][op["id"]] = rec
 
 # cutaway walls (dollhouse view): same spans clipped at CUT height, window sills kept, doors/glass dropped
 for w in PLAN["walls"]:
@@ -131,10 +170,20 @@ for w in PLAN["walls"]:
         if abs(z1 - CUT) < 1e-6: o.data.polygons[1].material_index = 1
         place_local(o, a, ang); put(o, "WallsCut")
     for op in ops:
-        if op["kind"] == "window" and op["sill"] < CUT:
-            c = op["t"] * L
-            o = FL.rb("SillCut", (op["width"] + 0.06, t + 0.04, 0.025), (c, 0, op["sill"] - 0.0125), M.white, bev=0.004)
-            place_local(o, a, ang); put(o, "WallsCut")
+        if op["kind"] in ("window", "slider") and op["sill"] < CUT:
+            c = op["t"] * L; wd = op["width"]; sill = op["sill"]; fr = 0.045; depth = min(t, 0.07); top_ = min(CUT, sill + op["height"])
+            cut_parts = [FL.rb("FrameLCut", (fr, depth, top_ - sill), (c - wd / 2 + fr / 2, 0, (sill + top_) / 2), M.metal_black, bev=0.002),
+                         FL.rb("FrameRCut", (fr, depth, top_ - sill), (c + wd / 2 - fr / 2, 0, (sill + top_) / 2), M.metal_black, bev=0.002),
+                         FL.rb("FrameBCut", (wd, depth, fr), (c, 0, sill + fr / 2), M.metal_black, bev=0.002),
+                         FL.rb("GlassCut", (wd - 2 * fr, 0.008, top_ - sill - fr), (c, 0, sill + fr + (top_ - sill - fr) / 2), M.glass, bev=0)]
+            if op["kind"] == "slider":
+                nm_ = 1 if wd < 2.8 else 2
+                for k in range(nm_):
+                    cut_parts.append(FL.rb("MullionCut", (fr * 0.8, depth, top_ - sill - fr), (c - wd / 2 + wd * (k + 1) / (nm_ + 1), 0, sill + fr + (top_ - sill - fr) / 2), M.metal_black, bev=0.002))
+            if sill > 0:
+                cut_parts.append(FL.rb("SillCut", (wd + 0.06, t + 0.04, 0.025), (c, 0, sill - 0.0125), M.white, bev=0.004))
+            for o in cut_parts:
+                place_local(o, a, ang); put(o, "WallsCut")
 
 def union_walls(coll, prefix):
     """Join the wall boxes and boolean-union them (exact, self-intersection) so corners and T-junctions have no
@@ -253,12 +302,16 @@ for it in PLAN["items"]:
     for o in objs:
         put(o, "Furniture")
         if o.parent is None: o.parent = root
-    nd = SHOTS.get("nudge", {}).get(it["id"], (0, 0))   # small layout fixes for footprints that overlap in the source plan
-    root.location = P(it["x"] + nd[0], it["y"] + nd[1], 0.012); root.rotation_euler = (0, 0, -math.radians(it["rot"]))
+    nd = list(SHOTS.get("nudge", {}).get(it["id"], (0, 0))) + [0]   # layout fixes (clearance / overlaps): dx, dy[, drot deg]
+    it["x"] += nd[0]; it["y"] += nd[1]; it["rot"] += nd[2]          # keep checks + report in sync with what is built
+    root.location = P(it["x"], it["y"], 0.012); root.rotation_euler = (0, 0, -math.radians(it["rot"]))
+    if it["type"] in ("wardrobe", "fridge", "bookshelf"): root["section"] = True
+    if it["type"] in ("floorLamp",): root["hide_cut"] = True
 
 # round-3 decor/fill items from shots.json (plan coords, own footprints), optionally per style
 for k, it in enumerate(SHOTS.get("extra_items", [])):
     if it.get("styles") and STYLE not in it["styles"]: continue
+    if it.get("off"): continue
     bld = FL.BUILDERS.get(it["type"])
     if not bld: print("skip extra", it["type"]); continue
     objs = bld(M, {"w": it["w"], "d": it["d"]}, {"id": f"x{k}"})
@@ -268,7 +321,7 @@ for k, it in enumerate(SHOTS.get("extra_items", [])):
         if o.parent is None: o.parent = root
     root.location = P(it["x"], it["y"], 0.012 + it.get("z", 0)); root.rotation_euler = (0, 0, -math.radians(it.get("rot", 0)))
 
-for k, a_ in enumerate(SHOTS.get("art", [])):
+for k, a_ in enumerate([] if SHOTS.get("no_art") else SHOTS.get("art", [])):
     root = bpy.data.objects.new(f"ArtX_{k}", None); put(root, "Furniture")
     for o in FL.wall_art(M, w=a_["w"], h=a_["h"], z=a_["z"], y=0.0, seed=k + 3):
         put(o, "Furniture"); o.parent = root
@@ -289,10 +342,17 @@ for op in PLAN["openings"]:
         x0 = op["width"] / 2 - 0.12 if side > 0 else -op["width"] / 2 - pw_ + 0.12
         cp = FL.curtain_panel(M, pw_, hc - 0.02, seed=side + 2)
         base = c + u * x0 + nrm * off
-        cp.location = P(base.x, base.y, 0.02); cp.rotation_euler = (0, 0, math.atan2(-u.y, u.x)); put(cp, "Furniture")
+        cp.location = P(base.x, base.y, 0.02); cp.rotation_euler = (0, 0, math.atan2(-u.y, u.x)); cp["tall"] = True; put(cp, "Furniture")
     mid = c + nrm * off
     rod = FL.cyl("CurtainRod", 0.012, op["width"] + 1.0, (0, 0, 0), M.metal_black if STYLE != "scandinavian" else M.wood, segs=12, axis="X")
-    rod.location = P(mid.x, mid.y, hc); rod.rotation_euler = (0, 0, math.atan2(-u.y, u.x)); rod["upper"] = True; put(rod, "Furniture")
+    rod.location = P(mid.x, mid.y, hc); rod.rotation_euler = (0, math.pi / 2, math.atan2(-u.y, u.x)); rod["upper"] = True; rod["tall"] = True
+    put(rod, "Furniture")
+    for sgn in (-1, 1):   # finials + ceiling brackets so the rod reads as mounted
+        e_ = mid + u * sgn * (op["width"] / 2 + 0.5)
+        fin = FL.cyl("RodFinial", 0.02, 0.03, (0, 0, 0), M.metal_black if STYLE != "scandinavian" else M.wood, segs=12, axis="X")
+        fin.location = P(e_.x, e_.y, hc); fin.rotation_euler = (0, math.pi / 2, math.atan2(-u.y, u.x)); fin["upper"] = True; fin["tall"] = True; put(fin, "Furniture")
+        br = FL.cyl("RodBracket", 0.006, H_ - hc, (0, 0, 0), M.metal_black if STYLE != "scandinavian" else M.wood, segs=8)
+        b_ = mid + u * sgn * (op["width"] / 2 + 0.38); br.location = P(b_.x, b_.y, (H_ + hc) / 2); br["upper"] = True; br["tall"] = True; put(br, "Furniture")
 
 # ceiling lights (pendants / downlights), visible + lit only in interior shots
 for k, l_ in enumerate(SHOTS.get("lights", [])):
@@ -322,7 +382,7 @@ def opening_clash(w, t, half_w, z0, z1):
     return False
 
 ART = {"sofa3": (1.1, 0.7, 1.55), "sofa2": (0.9, 0.6, 1.55), "bedDouble": (1.0, 0.6, 1.6), "bedSingle": (0.7, 0.5, 1.6)}
-for it in PLAN["items"]:
+for it in ([] if SHOTS.get("no_art") else PLAN["items"]):
     if it["type"] not in ART: continue
     f = FOOT[it["type"]]; r = math.radians(it["rot"]); aw, ah, az = ART[it["type"]]
     # the back of a piece is local -z in the app frame (front faces +z); rotation is clockwise in plan
@@ -392,6 +452,35 @@ def clash_check():
 CLASH = clash_check()
 print("CLASH", len(CLASH), json.dumps(CLASH[:40]))
 
+def descendants(o):
+    out = []
+    for c in o.children: out += [c] + descendants(c)
+    return out
+
+def section_copies(zcut):
+    """For items taller than the cutaway: hide the original in the dollhouse and show a copy bisected at the cut height
+    with the cut faces filled in the dark wall-cut material (same section language as the walls)."""
+    bpy.context.view_layer.update(); dg = bpy.context.evaluated_depsgraph_get()
+    for root in [o for o in COL["Furniture"].objects if o.get("section") or o.get("hide_cut")]:
+        for o in descendants(root):
+            if o.type != "MESH": continue
+            o["tall"] = True
+            if root.get("hide_cut"): continue
+            me = bpy.data.meshes.new_from_object(o.evaluated_get(dg)); bm = bmesh.new(); bm.from_mesh(me); bm.transform(o.matrix_world)
+            zs = [v.co.z for v in bm.verts]
+            if not zs or min(zs) >= zcut - 1e-4: bm.free(); continue
+            if max(zs) > zcut:
+                r = bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], plane_co=(0, 0, zcut), plane_no=(0, 0, 1), clear_outer=True)
+                ce = [e for e in r["geom_cut"] if isinstance(e, bmesh.types.BMEdge)]
+                nf = bmesh.ops.holes_fill(bm, edges=ce, sides=0)["faces"] if ce else []
+                ncap = len(me.materials)
+                for f in nf: f.material_index = ncap
+            bm.to_mesh(me); bm.free()
+            if max(zs) > zcut: me.materials.append(M.wall_cut)
+            c = bpy.data.objects.new(o.name + "_cut", me); c["cutonly"] = True; put(c, "Furniture")
+
+section_copies(CUT)
+
 # ------------------------------------------------------------------ ceiling (interior shots only)
 xs = [p[0] for w in PLAN["walls"] for p in (w["a"], w["b"])]; ys = [p[1] for w in PLAN["walls"] for p in (w["a"], w["b"])]
 minx, maxx, miny, maxy = min(xs), max(xs), min(ys), max(ys)
@@ -443,7 +532,8 @@ def vis(ceiling=False, uppers=True, cut=False):
         for o in COL[k].objects: o.hide_render = cut
     for o in COL["WallsCut"].objects: o.hide_render = not cut
     for o in COL["Furniture"].objects:
-        if o.get("tall") and cut: o.hide_render = True
+        if o.get("cutonly"): o.hide_render = not cut
+        elif o.get("tall") and cut: o.hide_render = True
         elif o.get("tall"): o.hide_render = False
     for o in COL["Furniture"].objects:
         if o.get("upper"): o.hide_render = not uppers
@@ -466,7 +556,8 @@ for v in VIEWS:
         cam.rotation_euler = (0, 0, math.radians(90) if rot90 else 0)
     elif base in ("iso", "dollhouse"):
         vis(False, uppers=base == "iso", cut=base == "dollhouse")
-        az = math.radians(SHOTS.get("iso_az", -35)); el = math.radians(SHOTS.get("iso_el", 42))
+        pre = "doll" if base == "dollhouse" else "iso"
+        az = math.radians(SHOTS.get(f"{pre}_az", SHOTS.get("iso_az", -35))); el = math.radians(SHOTS.get(f"{pre}_el", SHOTS.get("iso_el", 42)))
         dist = 60
         tgt = P(cx, cy, 0.6)
         loc = tgt + Vector((math.sin(az) * math.cos(el), -math.cos(az) * math.cos(el), math.sin(el))) * dist
@@ -475,14 +566,20 @@ for v in VIEWS:
         bpy.context.view_layer.update()
         inv = cam.matrix_world.inverted()
         zt = CUT if base == "dollhouse" else H
-        cs = [inv @ P(x, y, z) for x in (minx - 0.2, maxx + 0.2) for y in (miny - 0.2, maxy + 0.2) for z in (0, zt)]
+        mg = float(SHOTS.get("frame_margin", 0.12))
+        cs = [inv @ P(x, y, z) for x in (minx - mg, maxx + mg) for y in (miny - mg, maxy + mg) for z in (0, zt)]
         x0, x1 = min(c.x for c in cs), max(c.x for c in cs); y0, y1 = min(c.y for c in cs), max(c.y for c in cs)
-        cam.data.ortho_scale = max(x1 - x0, (y1 - y0) * 16 / 9) * float(SHOTS.get("iso_zoom", 1.06))
+        cam.data.ortho_scale = max(x1 - x0, (y1 - y0) * 16 / 9) * float(SHOTS.get(f"{pre}_zoom", SHOTS.get("iso_zoom", 1.06)))
         cam.data.shift_x = ((x0 + x1) / 2) / cam.data.ortho_scale; cam.data.shift_y = ((y0 + y1) / 2) / cam.data.ortho_scale
     else:  # interior shots from shots.json
         s = SHOTS[base]; vis(True, uppers=True); sc.cycles.samples = SAMPLES_INT
-        cam = camera(f"Cam_{base}", P(*s["pos"]), P(*s["look"]), lens=s.get("lens", 20))
-        sc.view_settings.exposure = s.get("exposure", 0.6)
+        for k_, (pv, mo, mc) in DOORPIV.items():
+            pv.matrix_basis = mc if (k_ in s.get("close", []) or k_ in SHOTS.get("closed_doors", [])) else mo
+        look = list(s["look"])
+        if s.get("level"): look[2] = s["pos"][2]          # level camera: verticals stay vertical, framing via shift
+        cam = camera(f"Cam_{base}", P(*s["pos"]), P(*look), lens=s.get("lens", 20))
+        cam.data.shift_y = s.get("shift_y", 0.0); cam.data.shift_x = s.get("shift_x", 0.0)
+        sc.view_settings.exposure = s.get("exposure", 0.6) + float(SHOTS.get("exposure_offset", 0.0))
         # soft ceiling fill lights in the shot's rooms (not visible to camera)
         for i, (lx, ly, pw_, sz) in enumerate(s.get("fills", [])):
             ld = bpy.data.lights.new(f"Fill{i}", "AREA"); ld.energy = pw_; ld.size = sz; ld.color = (1.0, 0.92, 0.82)
@@ -513,7 +610,9 @@ if "--save-blend" in argv:
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, f"{PLAN['id']}{TAG}.blend"), compress=True)
 
 # ------------------------------------------------------------------ dimension check vs plan labels
-report = {"plan": PLAN["id"], "subtitle": PLAN.get("subtitle"), "outer_centreline_m": [round(pw, 3), round(ph_, 3)],
+report = {"plan": PLAN["id"], "subtitle": PLAN.get("subtitle"), "outer_centreline_m": [round(pw, 3), round(ph_, 3)], "built": BUILT,
+          "items_as_built": [{k: it[k] for k in ("id", "type", "x", "y", "rot")} for it in PLAN["items"]],
+          "cameras": {v: dict(SHOTS[v.replace("_hero", "")]) for v in VIEWS if v.replace("_hero", "") in SHOTS},
           "walls": {w["id"]: round((Vector(w["b"]) - Vector(w["a"])).length, 3) for w in PLAN["walls"]},
           "rooms": {}, "render_seconds": times, "style": STYLE, "clash_check": CLASH, "assets": sorted(FL.USED_ASSETS)}
 for r in PLAN["rooms"]:

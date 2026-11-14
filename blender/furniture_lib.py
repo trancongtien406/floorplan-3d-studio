@@ -25,14 +25,14 @@ def hex2rgb(h):
 
 
 STYLE_PALETTES = {
-    "modern": dict(wall="#e9e7e3", wallTop="#2b2d33", fabric="#4a4d55", fabric2="#2f3237", accent="#b5653e", duvet="#e7e4df",
+    "modern": dict(wall="#e6e5e2", wallTop="#2b2d33", fabric="#3f4248", fabric2="#2f3237", accent="#b5653e", duvet="#e7e4df",
                    rug="#8d8a85", rug2="#3d3c3a", cabinet="#1f2023", counter="#efede9", oak_hsv=(0.5, 0.9, 0.85),
                    floor_hsv=(0.5, 0.62, 0.78), curtain="#8f8a83", lamp="black"),
-    "scandinavian": dict(wall="#f6f5f1", wallTop="#3a3f47", fabric="#d9d6cf", fabric2="#9aa3ad", accent="#7f9fb3", duvet="#ffffff",
+    "scandinavian": dict(wall="#f5f1ea", wallTop="#3a3f47", fabric="#e2dbcf", fabric2="#c3b9a8", accent="#7f9fb3", duvet="#ffffff",
                          rug="#ece7dd", rug2="#b9b2a5", cabinet="#f1f0ec", counter="#f3f2ee", oak_hsv=(0.5, 0.75, 1.15),
                          floor_hsv=(0.5, 0.7, 1.12), curtain="#f2efe8", lamp="globe"),
-    "japandi": dict(wall="#e7e4dd", wallTop="#3b342d", fabric="#c4b8a4", fabric2="#5e5548", accent="#6f7d5c", duvet="#e9e5dc",
-                    rug="#cdbf9f", rug2="#8f7a5c", cabinet="#cfc7b8", counter="#d9d4ca", oak_hsv=(0.5, 0.7, 1.0),
+    "japandi": dict(wall="#d8cfc2", wallTop="#3b342d", fabric="#b8aa94", fabric2="#5e5548", accent="#7a6a55", duvet="#e4ddd0",
+                    rug="#c6b69a", rug2="#8f7a5c", cabinet="#bdb09d", counter="#d9d4ca", oak_hsv=(0.5, 0.7, 1.0),
                     floor_hsv=(0.5, 0.62, 0.92), curtain="#e3d8c6", lamp="paper"),
     "industrial": dict(wall="#d9d4cf", wallTop="#1f2023", fabric="#7b4a2e", fabric2="#2c2d30", accent="#b5543a", duvet="#cfcac4",
                        rug="#6f655d", rug2="#3a3530", cabinet="#26272a", counter="#9a9894", oak_hsv=(0.5, 1.0, 0.6),
@@ -70,7 +70,7 @@ class Mats:
         S = STYLE_PALETTES[style]; X = STYLE_SPECS[style]
         self.S, self.X, self.style = S, X, style
         f = lambda n, **k: pbr_material(n, **k)
-        self.wall = f("WallPaint", color=hex2rgb(S["wall"]), rough=0.88, bump=0.04)
+        self.wall = self.plaster_mat(hex2rgb(S["wall"])) if style == "japandi" else f("WallPaint", color=hex2rgb(S["wall"]), rough=0.88, bump=0.04)
         self.wall_cut = f("WallCut", color=hex2rgb(S["wallTop"]), rough=0.7)
         fn = X["fabric_n"]
         self.fabric = self.fabric_mat("Fabric", hex2rgb(S["fabric"]), fn)
@@ -91,6 +91,8 @@ class Mats:
         self.ceramic = f("Ceramic", color=(0.9, 0.9, 0.89), rough=0.08, coat=0.5)
         self.counter = self.stone_mat("Counter", hex2rgb(S["counter"]))
         self.screen = f("Screen", color=(0.004, 0.004, 0.006), rough=0.06)
+        self.hob = f("GlassCeramicHob", color=(0.012, 0.012, 0.014), rough=0.32)
+        self.hob_ring = f("HobRing", color=(0.16, 0.16, 0.17), rough=0.5)
         self.rug = self.rug_mat("Rug", hex2rgb(S["rug"]), hex2rgb(S["rug2"]), X["rug_n"])
         self.glass = self.glass_mat()
         self.mirror = f("Mirror", color=(0.95, 0.95, 0.95), rough=0.02, metal=1.0)
@@ -102,6 +104,22 @@ class Mats:
         self.book_mats = [f(f"Book{i}", color=c, rough=0.6) for i, c in enumerate(
             [hex2rgb(h) for h in ("#2f3b4a", "#b8a58a", "#7a2e2a", "#e8e2d6", "#3e5243", "#c9a24a", "#1d1d1f")])]
         CUR_M[0] = self
+
+    def plaster_mat(self, col):
+        """Lime / clay plaster: low-frequency trowel tone variation + fine bump (Japandi walls)."""
+        m = pbr_material("WallPlaster", color=col, rough=0.93)
+        nt = m.node_tree; N = nt.nodes; L = nt.links; b = N["Principled BSDF"]
+        tc = N.new("ShaderNodeTexCoord")
+        n1 = N.new("ShaderNodeTexNoise"); n1.inputs["Scale"].default_value = 1.6; n1.inputs["Detail"].default_value = 4
+        L.new(tc.outputs["Object"], n1.inputs["Vector"])
+        cr = N.new("ShaderNodeMix"); cr.data_type = "RGBA"; cr.inputs[6].default_value = (col[0] * 0.9, col[1] * 0.89, col[2] * 0.87, 1)
+        cr.inputs[7].default_value = (min(1, col[0] * 1.06), min(1, col[1] * 1.06), min(1, col[2] * 1.05), 1)
+        L.new(n1.outputs["Fac"], cr.inputs[0]); L.new(cr.outputs[2], b.inputs["Base Color"])
+        n2 = N.new("ShaderNodeTexNoise"); n2.inputs["Scale"].default_value = 9; n2.inputs["Detail"].default_value = 10; n2.inputs["Roughness"].default_value = 0.65
+        L.new(tc.outputs["Object"], n2.inputs["Vector"])
+        bp = N.new("ShaderNodeBump"); bp.inputs["Strength"].default_value = 0.35; bp.inputs["Distance"].default_value = 0.004
+        L.new(n2.outputs["Fac"], bp.inputs["Height"]); L.new(bp.outputs["Normal"], b.inputs["Normal"])
+        return m
 
     def fabric_mat(self, name, col, ntex=None):
         m = pbr_material(name, color=col, rough=0.85)
@@ -359,7 +377,7 @@ def bed(M, w, d):
             n = max(5, int(w / 0.16))
             for i in range(n):
                 x = -w / 2 - 0.03 + (w + 0.06) / n * (i + 0.5)
-                o.append(soft(f"Channel{i}", ((w + 0.06) / n - 0.004, 0.1, 0.7), (x, d / 2 - 0.05, 0.52), M.fabric2, 0.04))
+                o.append(soft(f"Channel{i}", ((w + 0.06) / n - 0.004, 0.1, 0.66), (x, d / 2 - 0.05, 0.51), M.fabric2, 0.04))   # top 0.84 m < 0.90 m sill
         else:                  # scandinavian: oak slatted headboard
             o.append(rb("HBRail", (w + 0.04, 0.04, 0.06), (0, d / 2 - 0.02, 0.84), M.wood, bev=0.008))
             n = max(6, int(w / 0.11))
@@ -526,9 +544,10 @@ def kitchen(M, w, d=0.62, uppers=True):
     o.append(cyl("Tap", 0.015, 0.32, (sx, 0.22, 1.06), M.metal_black if kind == "handleless" else M.chrome, segs=16))
     o.append(cyl("Spout", 0.012, 0.2, (sx, 0.13, 1.21), M.metal_black if kind == "handleless" else M.chrome, segs=16, axis="Y"))
     hx = w / 2 - 0.5 if w > 2 else w / 2 - 0.4
-    o.append(rb("Hob", (0.6, 0.5, 0.008), (hx, -0.02, 0.9015), M.screen, bev=0.003))
-    for (ax, ay, r) in ((-0.15, -0.1, 0.09), (0.15, -0.1, 0.07), (-0.15, 0.12, 0.07), (0.15, 0.12, 0.09)):
-        o.append(cyl("Burner", r, 0.001, (hx + ax, -0.02 + ay, 0.906), M.dark, segs=32))
+    o.append(rb("Hob", (0.6, 0.5, 0.008), (hx, -0.02, 0.9015), M.hob, bev=0.003))
+    for (ax, ay, r) in ((-0.15, -0.1, 0.09), (0.15, -0.1, 0.07), (-0.15, 0.12, 0.07), (0.15, 0.12, 0.09)):   # printed zone rings
+        o.append(cyl("BurnerRing", r, 0.0006, (hx + ax, -0.02 + ay, 0.9058), M.hob_ring, segs=48))
+        o.append(cyl("BurnerIn", r - 0.006, 0.0008, (hx + ax, -0.02 + ay, 0.9059), M.hob, segs=48))
     # oven under hob
     o.append(rb("Oven", (0.58, 0.022, 0.56), (hx, -d / 2 + 0.032, 0.48), M.screen, bev=0.004))
     o.append(rb("OvenBar", (0.45, 0.03, 0.02), (hx, -d / 2 + 0.01, 0.73), M.steel, bev=0.006))
@@ -537,7 +556,7 @@ def kitchen(M, w, d=0.62, uppers=True):
         if p.parent is None: p.location = (sx + 0.55 if w > 2 else sx + 0.4, 0.12, 0.895)
         o.append(p)
     for p in ph("pot_enamel_01", w=0.24):
-        if p.parent is None: p.location = (hx + 0.15, 0.08, 0.906)
+        if p.parent is None: p.location = (hx + 0.15, 0.1, 0.9065)   # on the back-right zone
         o.append(p)
     if uppers:
         for i in range(n):
@@ -574,7 +593,19 @@ def island(M, w, d):
         for p in ph("food_apple_01", w=0.08):
             if p.parent is None: p.location = (ax, ay, 0.95)
             o.append(p)
-    o += book_stack(M, -0.55, 0.1, 0.92, 2, seed=3)
+    o += tray(M, -0.5, 0.05, 0.92)
+    o += at(ph({"modern": "ceramic_vase_03", "scandinavian": "ceramic_vase_02", "japandi": "ceramic_vase_04"}.get(M.style, "ceramic_vase_01"),
+               h=0.2), -0.56, 0.06, 0.935)
+    return o
+
+
+def tray(M, x, y, z, w=0.44, d=0.3):
+    """Shallow serving tray (solid wood base, 18 mm rim)."""
+    mat = M.wood_dark if M.style == "modern" else M.wood
+    o = [rb("TrayBase", (w, d, 0.012), (x, y, z + 0.006), mat, bev=0.003)]
+    for sx in (-1, 1):
+        o.append(rb("TrayRimX", (0.012, d, 0.03), (x + sx * (w / 2 - 0.006), y, z + 0.015), mat, bev=0.003))
+        o.append(rb("TrayRimY", (w - 0.024, 0.012, 0.03), (x, y + sx * (d / 2 - 0.006), z + 0.015), mat, bev=0.003))
     return o
 
 
@@ -715,13 +746,15 @@ def vanity(M, w, d):
     return o
 
 
-def wardrobe(M, w, d):
-    h = 2.2; o = [rb("WardBody", (w, d - 0.02, h), (0, 0.01, h / 2), M.white, bev=0.004)]
+def wardrobe(M, w, d, h=2.2):
+    body = {"modern": M.cabinet, "japandi": M.wood}.get(M.style, M.white)
+    o = [rb("WardBody", (w, d - 0.02, h), (0, 0.01, h / 2), body, bev=0.004),
+         rb("WardPlinth", (w - 0.04, 0.02, 0.08), (0, -d / 2 + 0.03, 0.04), M.dark, bev=0.002)]
     n = max(2, round(w / 0.55)); dw = w / n
     for i in range(n):
         x = -w / 2 + dw * (i + 0.5)
         dm = {"modern": M.cabinet, "japandi": M.wood}.get(M.style, M.white if i % 2 else M.wood)
-        o.append(rb(f"WDoor{i}", (dw - 0.006, 0.02, h - 0.04), (x, -d / 2 + 0.005, h / 2), dm, bev=0.003))
+        o.append(rb(f"WDoor{i}", (dw - 0.006, 0.02, h - 0.1), (x, -d / 2 + 0.005, (h + 0.08) / 2), dm, bev=0.003))
         o.append(rb(f"WPull{i}", (0.012, 0.02, 0.3), (x + (dw / 2 - 0.05) * (1 if i % 2 == 0 else -1), -d / 2 - 0.012, 1.05), M.metal_black, bev=0.004))
     return o
 
