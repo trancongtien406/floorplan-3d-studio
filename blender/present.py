@@ -314,7 +314,7 @@ def gallery():
         p = os.path.join(OUT, "gallery_a_dollhouse.jpg"); im.save(p, quality=92); out.append(p)
     if arg("--plan2d") and arg("--top"):
         im = Image.new("RGB", (GW, GH), PAPER); pad = 18; cw = (GW - 3 * pad) // 2; ch = GH - 130 - pad
-        a = Image.open(arg("--plan2d")).convert("RGB").crop((60, 40, 1800, 1420)); b = Image.open(arg("--top")).convert("RGB")
+        a = Image.open(arg("--plan2d")).convert("RGB").crop((60, 30, 1800, 1440)); b = Image.open(arg("--top")).convert("RGB")
         _, T0, k = top_map(arg("--top")); x0, y0 = T0(minx - 0.6, miny - 0.6); x1, y1 = T0(maxx + 0.6, maxy + 0.6)
         b = b.crop((int(x0), max(0, int(y0)), int(x1), min(b.size[1], int(y1))))
         for i, src in enumerate((a, b)):
