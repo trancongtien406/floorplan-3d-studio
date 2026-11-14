@@ -294,11 +294,11 @@
   "styles": {
    "modern": {},
    "scandinavian": {
-    "exposure_offset": 0.3
+    "exposure_offset": 0.42
    },
    "japandi": {
     "no_art": true,
-    "exposure_offset": -0.1
+    "exposure_offset": -0.05
    }
   },
   "closed_doors": [

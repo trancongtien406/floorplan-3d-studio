@@ -28,12 +28,12 @@ STYLE_PALETTES = {
     "modern": dict(wall="#e6e5e2", wallTop="#2b2d33", fabric="#3f4248", fabric2="#2f3237", accent="#b5653e", duvet="#e7e4df",
                    rug="#8d8a85", rug2="#3d3c3a", cabinet="#1f2023", counter="#efede9", oak_hsv=(0.5, 0.9, 0.85),
                    floor_hsv=(0.5, 0.62, 0.78), curtain="#8f8a83", lamp="black"),
-    "scandinavian": dict(wall="#f5f1ea", wallTop="#3a3f47", fabric="#e2dbcf", fabric2="#c3b9a8", accent="#7f9fb3", duvet="#ffffff",
+    "scandinavian": dict(wall="#f6f5f1", wallTop="#3a3f47", fabric="#dcd9d2", fabric2="#c3b9a8", accent="#7f9fb3", duvet="#ffffff",
                          rug="#ece7dd", rug2="#b9b2a5", cabinet="#f1f0ec", counter="#f3f2ee", oak_hsv=(0.5, 0.75, 1.15),
                          floor_hsv=(0.5, 0.7, 1.12), curtain="#f2efe8", lamp="globe"),
-    "japandi": dict(wall="#cbc5bb", wallTop="#3b342d", fabric="#b8aa94", fabric2="#5e5548", accent="#7a6a55", duvet="#e4ddd0",
+    "japandi": dict(wall="#d6c9b3", wallTop="#3b342d", fabric="#c9b594", fabric2="#5e5548", accent="#8a6a48", duvet="#e8dfcf",
                     rug="#c6b69a", rug2="#8f7a5c", cabinet="#bdb09d", counter="#d9d4ca", oak_hsv=(0.5, 0.7, 1.0),
-                    floor_hsv=(0.5, 0.62, 0.92), curtain="#e3d8c6", lamp="paper"),
+                    floor_hsv=(0.5, 0.8, 0.9), curtain="#e6dac4", lamp="lantern"),
     "industrial": dict(wall="#d9d4cf", wallTop="#1f2023", fabric="#7b4a2e", fabric2="#2c2d30", accent="#b5543a", duvet="#cfcac4",
                        rug="#6f655d", rug2="#3a3530", cabinet="#26272a", counter="#9a9894", oak_hsv=(0.5, 1.0, 0.6),
                        floor_hsv=(0.5, 1.0, 0.6), curtain="#8a847c", lamp="black"),
@@ -46,8 +46,8 @@ STYLE_SPECS = {
                    fabric_n="velour_velvet", rug_n="poly_wool_herringbone", leg="metal", tile=("marble_01", 0.6)),
     "scandinavian": dict(floor_wood=("laminate_floor_02", 0.5), wood=("white_oak_veneer", (0.5, 0.75, 1.1)), sofa="round", bed="slat",
                          chair="oak_round", coffee="coffee_table_round_01", armchair="round_boucle", kitchen="white_oak",
-                         fabric_n="wool_boucle", rug_n="knitted_fleece", leg="taper", tile=("marble_01", 0.6)),
-    "japandi": dict(floor_wood=("oak_wood_planks", 0.45), wood=("ash_veneer", (0.5, 0.6, 0.72)), sofa="low_frame", bed="platform",
+                         fabric_n="rough_linen", rug_n="knitted_fleece", leg="taper", tile=("marble_01", 0.6)),
+    "japandi": dict(floor_wood=("oak_wood_planks", 0.45), wood=("oak_veneer_01", (0.5, 0.9, 0.82)), sofa="low_frame", bed="platform",
                     chair="ash_low", coffee="low_ash", armchair="modern_arm_chair_01", kitchen="ash_slat",
                     fabric_n="rough_linen", rug_n="knitted_fleece", leg="block", tile=("marble_01", 0.6)),
     "industrial": dict(floor_wood=("laminate_floor_02", 0.5), wood=("dark_wood", (0.5, 0.8, 0.7)), sofa="boxy", bed="channel",
@@ -652,7 +652,15 @@ def pendant(M, kind=None, drop=0.6, ceiling=2.7, size=1.0):
     elif kind == "globe":
         bpy.ops.mesh.primitive_uv_sphere_add(radius=0.17 * size, location=(0, 0, z - 0.17 * size), segments=32, ring_count=16)
         g = bpy.context.active_object; set_mat(g, M.shade); shade_smooth(g, 180); o.append(g)
-    else:  # japandi: wide paper drum with an ash rim
+    elif kind == "lantern":   # japandi: ribbed rice-paper lantern (Akari-style), slightly squashed globe
+        rr = 0.24 * size; zc = z - rr * 0.85
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=rr, location=(0, 0, zc), segments=48, ring_count=24)
+        g = bpy.context.active_object; g.scale = (1, 1, 0.85); set_mat(g, M.paper); shade_smooth(g, 180); o.append(g)
+        for k in range(-3, 4):
+            zz = k / 4.0; rk = rr * math.sqrt(max(0.0, 1 - zz * zz)) + 0.0015
+            bpy.ops.mesh.primitive_torus_add(major_radius=rk, minor_radius=0.0016, major_segments=48, minor_segments=6, location=(0, 0, zc + zz * rr * 0.85))
+            t_ = bpy.context.active_object; set_mat(t_, M.dark); o.append(t_)
+    else:  # wide paper drum with a wooden rim
         o.append(cyl("Drum", 0.3 * size, 0.2 * size, (0, 0, z - 0.1 * size), M.paper, segs=64))
         o.append(cyl("DrumRimT", 0.305 * size, 0.012, (0, 0, z - 0.006), M.wood, segs=64))
         o.append(cyl("DrumRimB", 0.305 * size, 0.012, (0, 0, z - 0.2 * size + 0.006), M.wood, segs=64))

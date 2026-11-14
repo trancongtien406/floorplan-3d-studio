@@ -75,6 +75,25 @@ addon); it is optional and not needed for these renders.
 
 Asset licences: see [CREDITS.md](CREDITS.md).
 
+## Sample output — round 5 (final presentation polish)
+
+Gallery order: A, C, B, D.
+
+| | |
+|---|---|
+| ![](previews/r5_gallery_a_dollhouse.jpg) A: 2D floor plan to 3D apartment | ![](previews/r5_gallery_c_interiors.jpg) C: interiors |
+| ![](previews/r5_gallery_b_plan_vs_3d.jpg) B: dimension-matched 2D to 3D | ![](previews/r5_gallery_d_styles.jpg) D: one room, three styles |
+
+* **B.** "DIMENSION-MATCHED 2D TO 3D RECONSTRUCTION". The 3D top view is about 16 % larger, with the excess grey cropped (16 cm margin), and is labelled "3D TOP VIEW".
+  The 2D dimension text is about 12 % larger (24 → 27 px).
+* **C and D.** The headline sits in a separate header bar above the panels (60 px, 28 px type, 22 px top margin), so it never touches a pendant or cable,
+  and no text crosses a panel divider. C is -0.15 EV.
+* **Styles.** They are now clearly distinct. Scandinavian has white walls, light oak, linen upholstery, opal globes and brighter daylight (+0.42 EV).
+  Japandi has warm beige plaster, warm oak (`oak_veneer_01`), low wooden-frame furniture and ribbed rice-paper lanterns.
+  Both were re-rendered at the same camera (Cycles, 40 spp + OIDN, 1920×1080, about 2.5-3 min each).
+* **Geometry proof.** The swing column reads "from → into". D4 reads "Exterior → Kitchen (rendered closed)". A scope note says the checks cover walls,
+  openings and swings, and are a modelling-accuracy check, not a building-code or structural certification (`previews/r5_geometry_proof.jpg` / `.csv`).
+
 ## Sample output — round 4 (accuracy, artifacts, framing, presentation)
 
 **Accuracy.** Room areas are now *net* (polygons offset to the inside wall faces, `plan2d.py --areas`):
