@@ -335,7 +335,7 @@ def gallery():
         fs = arg("--styles").split(","); names = ["Modern", "Scandinavian", "Japandi"]
         im = Image.new("RGB", (GW, GH), (18, 19, 22)); g = 8; cw = (GW - 4 * g) // 3
         for i, (f_, n_) in enumerate(zip(fs, names)):
-            im.paste(cover(Image.open(f_), cw, GH - 2 * g, fx=0.42), (g + i * (cw + g), g))
+            im.paste(cover(Image.open(f_), cw, GH - 2 * g, fx=0.36), (g + i * (cw + g), g))
             label(im, g + i * (cw + g) + 14, GH - 52, n_)
             s16 = cover(Image.open(f_), 1920, 1080); label(s16, 32, 1080 - 70, f"{n_} · same camera, same light")
             s16.save(os.path.join(OUT, f"style_{n_.lower()}_16x9.jpg"), quality=92)
