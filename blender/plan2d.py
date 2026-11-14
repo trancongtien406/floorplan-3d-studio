@@ -36,6 +36,52 @@ def poly_area(pts):
     return abs(sum(pts[i][0] * pts[(i + 1) % len(pts)][1] - pts[(i + 1) % len(pts)][0] * pts[i][1] for i in range(len(pts)))) / 2
 
 
+def edge_wall(p, q):
+    """Wall whose centre-line covers room edge p-q (collinear, >50 % overlap) or None (open edge)."""
+    (px, py), (qx, qy) = p, q; L = math.hypot(qx - px, qy - py)
+    for w in PLAN["walls"]:
+        (ax, ay), (bx, by) = w["a"], w["b"]; dx, dy = bx - ax, by - ay; WL = math.hypot(dx, dy)
+        if WL < 1e-9: continue
+        nx, ny = -dy / WL, dx / WL
+        if abs((px - ax) * nx + (py - ay) * ny) > 0.02 or abs((qx - ax) * nx + (qy - ay) * ny) > 0.02: continue
+        t0 = ((px - ax) * dx + (py - ay) * dy) / WL; t1 = ((qx - ax) * dx + (qy - ay) * dy) / WL
+        ov = min(max(t0, t1), WL) - max(min(t0, t1), 0)
+        if ov > 0.5 * L: return w
+    return None
+
+
+def net_polygon(pts):
+    """Room polygon shrunk to the inside faces of its walls: each edge moves inward by half the thickness of the wall
+    on it (open-plan edges without a wall stay on the line)."""
+    n = len(pts); sa = sum(pts[i][0] * pts[(i + 1) % n][1] - pts[(i + 1) % n][0] * pts[i][1] for i in range(n))
+    lines = []
+    for i in range(n):
+        p, q = pts[i], pts[(i + 1) % n]; dx, dy = q[0] - p[0], q[1] - p[1]; L = math.hypot(dx, dy); ux, uy = dx / L, dy / L
+        inx, iny = (-uy, ux) if sa > 0 else (uy, -ux)
+        w = edge_wall(p, q); off = w["thickness"] / 2 if w else 0.0
+        lines.append(((p[0] + inx * off, p[1] + iny * off), (ux, uy)))
+    out = []
+    for i in range(n):
+        (p1, d1), (p2, d2) = lines[i - 1], lines[i]
+        den = d1[0] * d2[1] - d1[1] * d2[0]
+        if abs(den) < 1e-9: out.append(p2); continue
+        t = ((p2[0] - p1[0]) * d2[1] - (p2[1] - p1[1]) * d2[0]) / den
+        out.append((p1[0] + d1[0] * t, p1[1] + d1[1] * t))
+    return out
+
+
+def areas():
+    rooms = {r["name"]: {"net_m2": round(poly_area(net_polygon(r["points"])), 2), "centreline_m2": round(poly_area(r["points"]), 2),
+                         "net_dims_m": [round(max(p[0] for p in net_polygon(r["points"])) - min(p[0] for p in net_polygon(r["points"])), 3),
+                                        round(max(p[1] for p in net_polygon(r["points"])) - min(p[1] for p in net_polygon(r["points"])), 3)]}
+             for r in PLAN["rooms"]}
+    ext = max(w["thickness"] for w in PLAN["walls"])
+    return {"rooms": rooms, "net_total_m2": round(sum(v["net_m2"] for v in rooms.values()), 2),
+            "gross_centreline_m2": round(pw * ph, 2), "gross_external_m2": round((pw + ext) * (ph + ext), 2),
+            "method": "net = room polygons offset to the inside wall faces (half the wall thickness per walled edge; open-plan "
+                      "edges stay on the line, so living/kitchen and hall/living are split on the open boundary)"}
+
+
 def draw_plan(out):
     s = min((W - 900) / pw, (H - 380) / ph); ox = (W - 640 - pw * s) / 2 - minx * s + 60; oy = (H - ph * s) / 2 - miny * s + 30
     T = lambda x, y: (ox + x * s, oy + y * s)
@@ -75,10 +121,10 @@ def draw_plan(out):
     # room labels
     for r in PLAN["rooms"]:
         px = sum(p[0] for p in r["points"]) / len(r["points"]); py = sum(p[1] for p in r["points"]) / len(r["points"])
-        X, Y = T(px, py); a = poly_area(r["points"])
+        X, Y = T(px, py); a = poly_area(net_polygon(r["points"]))
         if a < 4: X += 0.45 * s  # small rooms: keep the label clear of door swings
         d.text((X, Y - 16), r["name"], font=f_room, fill=(30, 30, 30), anchor="mm")
-        d.text((X, Y + 18), f"{a:.1f} m²", font=f_area, fill=(90, 90, 90), anchor="mm")
+        d.text((X, Y + 18), f"{a:.2f} m² net", font=f_area, fill=(90, 90, 90), anchor="mm")
     # dimension chains (centre-line, like the app's labels)
     def dim(p, q, off, horiz):
         (x0, y0), (x1, y1) = T(*p), T(*q)
@@ -114,9 +160,10 @@ def draw_plan(out):
     bx = W - 600
     d.text((bx, 120), PLAN.get("name", PLAN["id"]).upper(), font=f_t, fill=(30, 30, 30))
     d.text((bx, 175), PLAN.get("subtitle", ""), font=f_area, fill=(90, 90, 90))
-    tot = sum(poly_area(r["points"]) for r in PLAN["rooms"])
-    lines = [f"Net floor area: {tot:.1f} m²", f"Outer (wall centre-line): {pw:.2f} × {ph:.2f} m",
-             f"Outer (built, outside faces): {pw + 0.2:.2f} × {ph + 0.2:.2f} m", "Exterior walls 200 mm, interior 120 mm",
+    A = areas()
+    lines = [f"Net floor area: {A['net_total_m2']:.2f} m²  (inside wall faces)", f"Gross area: {A['gross_centreline_m2']:.1f} m²  (wall centre-lines)",
+             f"Gross external: {A['gross_external_m2']:.1f} m²  (outside faces)",
+             f"Outer: {pw + 0.2:.2f} × {ph + 0.2:.2f} m outside faces", "Exterior walls 200 mm, interior 120 mm",
              f"Ceiling height {max(w['height'] for w in PLAN['walls']):.2f} m", "Dimensions in metres", "", "Legend:"]
     for i, l in enumerate(lines): d.text((bx, 230 + i * 36), l, font=f_area, fill=(50, 50, 50))
     yy = 230 + len(lines) * 36
@@ -167,6 +214,8 @@ def check(top, out):
 
 if __name__ == "__main__":
     print(draw_plan(arg("--out")))
+    if arg("--areas"):
+        json.dump(areas(), open(arg("--areas"), "w"), indent=2); print(json.dumps(areas()))
     if arg("--top"):
         r = check(arg("--top"), arg("--check")); print(json.dumps(r))
         json.dump(r, open(arg("--check").rsplit(".", 1)[0] + ".json", "w"), indent=2)
