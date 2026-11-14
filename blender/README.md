@@ -46,3 +46,11 @@ AI client can drive the same functions inside a Blender GUI through
 addon); it is optional and not needed for these renders.
 
 Asset licences: see [CREDITS.md](CREDITS.md).
+
+## Sample output (demo plans, Cycles CPU)
+
+| | |
+|---|---|
+| ![](previews/twobed_dollhouse.jpg) | ![](previews/townhouse_dollhouse.jpg) |
+| ![](previews/twobed_top.jpg) | ![](previews/townhouse_interior2_hero.jpg) |
+| ![](previews/townhouse_interior1.jpg) | ![](previews/twobed_interior2.jpg) |
