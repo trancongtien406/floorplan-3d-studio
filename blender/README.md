@@ -75,6 +75,31 @@ addon); it is optional and not needed for these renders.
 
 Asset licences: see [CREDITS.md](CREDITS.md).
 
+## Sample output — round 4 (accuracy, artifacts, framing, presentation)
+
+**Accuracy.** Room areas are now *net* (polygons offset to the inside wall faces, `plan2d.py --areas`):
+Bedroom 1 14.75, Bath 4.59, Bedroom 2 14.75, Hall 2.52, Living & dining 26.50, Kitchen 11.14 = **74.25 m² net**;
+80.00 m² is the gross area on wall centre-lines and 83.64 m² the gross external area. Each figure is labelled with its basis.
+`present.py` reads the *built* geometry from Blender object coordinates (wall boxes, door/window jambs, door pivots
+at 80° open), not from pixels, and compares it to the plan: 18/18 checks, max deviation 0.00 mm
+(`previews/r4_geometry_proof.csv`). The clean overlay keeps its legend in the margin.
+
+**Artifacts fixed.** Vertical "cables" were curtain rods with an overwritten rotation (now horizontal, with brackets and finials).
+The hob glow came from a mirror-glossy hob reflecting the pot (now satin glass-ceramic with printed zones).
+The white island block is now a wooden tray. The white block in the dollhouse was the wardrobe: tall furniture is now sectioned at the cut height with dark caps.
+Circulation is about 0.9 m around the island, dining table and beds.
+
+| | |
+|---|---|
+| ![](previews/r4_gallery_a_dollhouse.jpg) | ![](previews/r4_gallery_b_plan_vs_3d.jpg) |
+| ![](previews/r4_gallery_c_interiors.jpg) | ![](previews/r4_gallery_d_styles.jpg) |
+| ![](previews/r4_technical_top.jpg) labelled technical top view | ![](previews/r4_geometry_overlay.jpg) model-coordinate overlay |
+| ![](previews/r4_twobed_modern_iso.jpg) isometric | ![](previews/r4_townhouse_dining.jpg) townhouse dining (stair shadows lifted) |
+
+Styles differ in design language as well as colour: Modern uses black metal and dark walnut. Scandinavian uses light oak, warm white and linen.
+Japandi is low-profile, with textured taupe plaster and minimal decor. Exposure is matched across the three (mean luminance 153 / 147 / 145).
+Render times (8 vCPU shared, no GPU, 2560x1440): top 2.4 min, dollhouse 2.1, iso 2.2 at 48 spp. Interiors take 8.1-15.3 min at 80 spp.
+
 ## Sample output — round 3 (twobed, Modern apartment, 2560x1440, Cycles CPU + OIDN)
 
 | | |
