@@ -13,7 +13,7 @@ plan JSON  ──►  render_plan.py (Blender 4.2, headless)  ──►  top / d
 | `top` | orthographic furnished 2D->3D plan (dark wall cuts, soft sun) |
 | `dollhouse` | isometric cutaway, walls cut at 1.2 m (`--cut`) |
 | `iso` | isometric, full-height walls |
-| `interior1`, `interior2` | eye-level shots defined in `shots.json` (camera, lens, fill lights, exposure) |
+| `living`, `kitchen`, `bedroom` (`interior1/2` for older plans) | eye-level shots defined in `shots.json` (camera, lens, fill lights, exposure) |
 | `<view>_hero` | the same view at 2560x1440 |
 
 ## Run
@@ -25,12 +25,40 @@ blender -b -P blender/render_plan.py -- --plan blender/plans/twobed.json --out b
         --views top,dollhouse,iso,interior1,interior2 --samples 48 --samples-interior 96
 ```
 
-Options: `--pct 40` (preview size), `--cut 1.2` (dollhouse wall height), `--save-blend` (keep the scene).
+Options: `--style modern|scandinavian|japandi` (furniture families + materials, not just colours),
+`--tag _modern` (output suffix), `--pct 40` (preview size), `--cut 1.2` (dollhouse wall height),
+`--save-blend` (scene organised into Architecture / Furniture / Lighting / Cameras / Environment, textures packed).
 Every run also writes `<plan>_report.json` with wall lengths, room sizes, built outer size and render times,
 so the 3D can be checked against the 2D dimension labels.
 
 Measured on an 8-vCPU cloud box, CPU only (no GPU), Cycles + OpenImageDenoise, 1920x1080:
 top ~1.5-2 min, dollhouse ~1 min, interiors ~4-8 min, 2560x1440 hero ~10 min (see the report files).
+
+## Style presets (round 3)
+
+| | Modern | Scandinavian | Japandi |
+|---|---|---|---|
+| Floor | herringbone parquet | light laminate | wide oak planks |
+| Wood | walnut | white oak | ash |
+| Sofa | boxy, thin arms, black metal legs, velvet | rounded boucle, tapered oak legs | low, on an ash frame, linen |
+| Bed | channel-tufted headboard | oak slat headboard | low ash platform |
+| Dining | CC0 upholstered chairs, steel sled table | round-seat oak chairs, tapered legs | ash chairs + trestle table |
+| Kitchen | black handleless, marble | white with oak pulls | ash slat fronts |
+| Pendants | black domes | opal globes | paper drums |
+
+Also per scene: curtains (sheer, translucent) at every large window, pendants over dining + island and
+downlights with real light sources (interior shots only), sideboard/books/vases/fruit/cutting board/pot decor,
+tiled backsplash with LED strip, brass/oak threshold where two floors meet without a wall, garden HDRI seen
+through the windows (dimmed for camera rays so it is not blown out, full strength for lighting).
+
+## Checks
+
+* `plan2d.py` draws the 2D plan (walls, openings, door swings in the app's handedness, room areas, dimension
+  chains) and overlays the plan geometry on the orthographic top render, measuring the built outer size in
+  pixels: twobed measures 10.193 x 8.195 m vs 10.20 x 8.20 m (1 px = 6.1 mm).
+* Every run does an automated clash check (furniture vs furniture via bounding boxes refined to real vertices,
+  dining chairs vs their table, furniture footprints vs walls) and writes it to `<plan>_report.json`
+  (`clash_check`). Overlaps that exist in a source plan can be fixed per plan with `shots.json -> nudge`.
 
 ## Dimensions
 
@@ -47,10 +75,27 @@ addon); it is optional and not needed for these renders.
 
 Asset licences: see [CREDITS.md](CREDITS.md).
 
-## Sample output (demo plans, Cycles CPU)
+## Sample output — round 3 (twobed, Modern apartment, 2560x1440, Cycles CPU + OIDN)
+
+| | |
+|---|---|
+| ![](previews/r3_twobed_plan_2d.jpg) 2D plan | ![](previews/r3_twobed_modern_top.jpg) furnished top view |
+| ![](previews/r3_twobed_modern_dollhouse.jpg) dollhouse | ![](previews/r3_twobed_modern_iso.jpg) isometric |
+| ![](previews/r3_twobed_modern_living.jpg) living / dining | ![](previews/r3_twobed_modern_kitchen.jpg) kitchen |
+| ![](previews/r3_twobed_modern_bedroom.jpg) master bedroom | ![](previews/r3_twobed_dimension_check.jpg) plan overlay on the top render |
+
+Signature room in the three styles, same camera:
+
+| Modern | Scandinavian | Japandi |
+|---|---|---|
+| ![](previews/r3_twobed_modern_living.jpg) | ![](previews/r3_twobed_scandinavian_living.jpg) | ![](previews/r3_twobed_japandi_living.jpg) |
+
+Render times (8 vCPU, no GPU): top 2.5 min, dollhouse 2.1 min, iso 2.0 min at 48 spp; interiors 6.3-12.6 min at
+80 spp (adaptive, denoised), all 2560x1440.
+
+### Round 2 (for comparison)
 
 | | |
 |---|---|
 | ![](previews/twobed_dollhouse.jpg) | ![](previews/townhouse_dollhouse.jpg) |
 | ![](previews/twobed_top.jpg) | ![](previews/townhouse_interior2_hero.jpg) |
-| ![](previews/townhouse_interior1.jpg) | ![](previews/twobed_interior2.jpg) |

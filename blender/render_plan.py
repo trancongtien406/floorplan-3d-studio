@@ -107,7 +107,8 @@ for w in PLAN["walls"]:
             knob = FL.rb("Handle", (0.12, 0.05, 0.02), (leafW - 0.08, 0, 1.0), M.brass, bev=0.006)
             piv = bpy.data.objects.new("DoorPivot", None); put(piv, "Openings")
             leaf.parent = piv; knob.parent = piv
-            piv.location = (hinge_x, 0, 0); piv.rotation_euler = (0, 0, -s * math.radians(80))  # same swing as src/three/build.ts
+            ang_open = 0.0 if op["id"] in SHOTS.get("closed_doors", []) else math.radians(80)   # exterior doors can be shown closed
+            piv.location = (hinge_x, 0, 0); piv.rotation_euler = (0, 0, -s * ang_open)  # same swing as src/three/build.ts
             parts += [leaf, knob]
             put(leaf, "Openings"); put(knob, "Openings")
             place_local(piv, a, ang)
@@ -187,6 +188,14 @@ for r in PLAN["rooms"]:
         co = me.vertices[lp.vertex_index].co; uvl.data[li].uv = (co.x, co.y)
     set_mat(o, floor_mat(r["floor"]))
 
+# thresholds: where two rooms with different floors meet without a wall (open plan), lay a 30 mm oak/brass strip on the line
+_edges = {}
+for r in PLAN["rooms"]:
+    pts_ = r["points"]
+    for i in range(len(pts_)):
+        a_, b_ = tuple(pts_[i]), tuple(pts_[(i + 1) % len(pts_)])
+        _edges.setdefault(tuple(sorted((a_, b_))), []).append(r["floor"])
+
 def seg_wall(p, q):
     """Wall that contains room edge p-q (collinear, overlapping)."""
     p, q = Vector(p), Vector(q)
@@ -228,6 +237,12 @@ for r in PLAN["rooms"]:
             ang = math.atan2(-u.y, u.x)
             bb = FL.rb("Baseboard", (s1 - s0, 0.012, 0.08), (0, 0, 0), M.white, bev=0.002)
             bb.location = P(mid.x, mid.y, 0.04); bb.rotation_euler = (0, 0, ang); put(bb, "Walls")
+
+for (a_, b_), fl in _edges.items():
+    if len(fl) == 2 and fl[0] != fl[1] and not seg_wall(a_, b_):
+        A_, B_ = Vector(a_), Vector(b_); m_ = (A_ + B_) / 2; d_ = B_ - A_
+        th = FL.rb("Threshold", (d_.length, 0.03, 0.004), (0, 0, 0), M.brass if STYLE == "modern" else M.wood, bev=0.001, uv=False)
+        th.location = P(m_.x, m_.y, 0.014); th.rotation_euler = (0, 0, math.atan2(-d_.y, d_.x)); put(th, "Floors")
 
 # ------------------------------------------------------------------ furniture
 for it in PLAN["items"]:

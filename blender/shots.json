@@ -260,13 +260,6 @@
     "y": 3.62,
     "w": 0.45,
     "d": 0.45
-   },
-   {
-    "type": "basket",
-    "x": 6.45,
-    "y": 7.65,
-    "w": 0.4,
-    "d": 0.4
    }
   ],
   "art": [
@@ -291,7 +284,10 @@
    "modern": {},
    "scandinavian": {},
    "japandi": {}
-  }
+  },
+  "closed_doors": [
+   "b9"
+  ]
  },
  "townhouse": {
   "sun_az": 30,
