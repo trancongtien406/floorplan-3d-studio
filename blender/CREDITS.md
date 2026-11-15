@@ -15,14 +15,12 @@ set per style).
 | [Marble 01](https://polyhaven.com/a/marble_01) | texture | Rob Tuytel | tile floors |
 | [Dark Wood](https://polyhaven.com/a/dark_wood) | texture | Dario Barresi, Dimitrios Savva, Rico Cilliers | Modern walnut furniture |
 | [White Oak Veneer](https://polyhaven.com/a/white_oak_veneer) | texture | Jenelle van Heerden | Scandinavian oak furniture |
-| [Ash Veneer](https://polyhaven.com/a/ash_veneer) | texture | Jenelle van Heerden | Japandi ash furniture |
 | [Long White Tiles](https://polyhaven.com/a/long_white_tiles) | texture | Jenelle van Heerden, Sergej Majboroda | kitchen backsplash |
 | [Velour Velvet](https://polyhaven.com/a/velour_velvet) | texture | colormass, Rico Cilliers | Modern upholstery (normal map) |
-| [Wool Boucle](https://polyhaven.com/a/wool_boucle) | texture | colormass, Rico Cilliers | Scandinavian boucle (normal map) |
 | [Rough Linen](https://polyhaven.com/a/rough_linen) | texture | colormass, Rico Cilliers | linen, curtains, bedding (normal map) |
 | [Knitted Fleece](https://polyhaven.com/a/knitted_fleece) | texture | colormass, Rico Cilliers | throws, rugs (normal map) |
 | [Poly Wool Herringbone](https://polyhaven.com/a/poly_wool_herringbone) | texture | colormass, Rico Cilliers | Modern rug weave (normal map) |
-| [Oak Veneer 01](https://polyhaven.com/a/oak_veneer_01) | texture | Jenelle van Heerden | (round 2 oak) |
+| [Oak Veneer 01](https://polyhaven.com/a/oak_veneer_01) | texture | Jenelle van Heerden | Japandi oak furniture |
 | [Granite Tile](https://polyhaven.com/a/granite_tile) | texture | Charlotte Baglioni | concrete floors |
 | [Brown Leather](https://polyhaven.com/a/brown_leather) | texture | Rob Tuytel | industrial upholstery (normal map) |
 | [Ottoman 01](https://polyhaven.com/a/Ottoman_01) | model | Caspian Fortune | furniture / decor |
@@ -49,6 +47,11 @@ set per style).
 | [Wooden Bowl 01](https://polyhaven.com/a/wooden_bowl_01) | model | Oliver Harries | furniture / decor |
 | [Wooden Cutting Board](https://polyhaven.com/a/wooden_cutting_board) | model | Kuutti Siitonen | furniture / decor |
 | [Wooden Display Shelves 01](https://polyhaven.com/a/wooden_display_shelves_01) | model | James Ray Cock | furniture / decor |
+| [Mid Century Lounge Chair](https://polyhaven.com/a/mid_century_lounge_chair) | model | Kuutti Siitonen | lounge chair (`furniture_lib.py`, not in the two-bed renders) |
+| [Round Wooden Table 02](https://polyhaven.com/a/round_wooden_table_02) | model | Ulan Cabanilla | round table (`furniture_lib.py`, not in the two-bed renders) |
+
+Downloaded by `fetch_assets.py` but not used by the current code: Ash Veneer and Wool Boucle textures (the
+Scandinavian boucle armchair is shaded procedurally).
 
 Everything else (walls, openings, floors, baseboards, curtains, sofas, beds, kitchens + appliances, sanitary ware,
 wardrobes, stairs, procedural chairs, tables, rugs, pendants/downlights, sideboard, bench, books, wall art) is
